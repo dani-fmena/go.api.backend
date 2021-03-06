@@ -21,7 +21,7 @@ func BookRegister(app *iris.Application) {
 }
 
 //region ======== LOGIC =================================================================
-// list
+// list endpoint for listing the ...
 func list(ctx iris.Context) {
 	books := []models.Book{
 		{"Mastering Concurrency in Go"},
@@ -36,6 +36,7 @@ func list(ctx iris.Context) {
 	// ctx.Negotiate(books)
 }
 
+// create endpoint ...
 func create(ctx iris.Context) {
 	var b models.Book
 	err := ctx.ReadJSON(&b)
