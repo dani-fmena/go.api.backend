@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go.api.backend/endpoints"
+	"go.api.backend/api/endpoints"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/recover"
@@ -12,6 +12,7 @@ func main() {
 
 	//region ======== GLOBAL MIDDLEWARES ====================================================
 
+	// Built in
 	app.UseRouter(recover.New()) //Recovery middleware recovers from any panics and writes a 500 if there was one.
 
 	//endregion =============================================================================
