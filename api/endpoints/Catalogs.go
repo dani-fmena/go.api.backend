@@ -7,28 +7,29 @@ import (
 )
 
 // BookRegister register the Books endpoints
-func BookRegister(app *iris.Application) {
+func CatalogRegister(app *iris.Application) {
 
-	booksAPI := app.Party("/books") // This is a closure, but with a named function
+	catalogAPI := app.Party("/catalogs") // This is a closure, but with a named function
 	{
 		// --- GROUP MIDDLEWARES ---
-		booksAPI.Use(iris.Compression)
+		catalogAPI.Use(iris.Compression)
 
-		booksAPI.Get("/", listBooks)
-		booksAPI.Post("/", createBooks)
+		catalogAPI.Get("/", listCatalogs)
+		catalogAPI.Post("/", createCatalogs)
 	}
 }
 
 //region ======== LOGIC =================================================================
 
 // list endpoint for listing the  ...
-// @Summary Books
+// @Summary Catalog
 // @Description Get all the books
-// @Tag books
+// @Tag catalogs
+// Group Catalog
 // @Produce json
-// @Success 200 {array} models.Book
-// @Router /books [get]
-func listBooks(ctx iris.Context) {
+// @Success 200 {object} models.Book "ok"
+// @Router /catalogs [get]
+func listCatalogs(ctx iris.Context) {
 	books := []models.Book{
 		{"Mastering Concurrency in Go"},
 		{"Go Design Patterns"},
@@ -43,13 +44,14 @@ func listBooks(ctx iris.Context) {
 }
 
 // create endpoint ...
-// @Summary Books
+// @Summary Catalog
 // @Description Get all the books
-// @Tag books
+// @Tag catalogs
+// Group Catalog
 // @Produce json
 // @Success 200 {string} string	"ok"
-// @Router /books [post]
-func createBooks(ctx iris.Context) {
+// @Router /catalogs [post]
+func createCatalogs(ctx iris.Context) {
 	var b models.Book
 	err := ctx.ReadJSON(&b)
 	// TIP: use ctx.ReadBody(&b) to bind

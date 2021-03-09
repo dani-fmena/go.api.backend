@@ -1,0 +1,94 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Api description shell project",
+        "title": "Shell Project",
+        "contact": {
+            "name": "Name Test",
+            "url": "http://contact.sample/text",
+            "email": "sample@mail.io"
+        },
+        "version": "0.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/books": {
+            "get": {
+                "description": "Get all the books",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Books",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Book"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Get all the books",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Books",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/catalogs": {
+            "get": {
+                "description": "Get all the books",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Catalog",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "$ref": "#/definitions/models.Book"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Get all the books",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Catalog",
+                "responses": {
+                    "200": {
+                        "description": "ok",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Book": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
