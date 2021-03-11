@@ -3,7 +3,7 @@ package endpoints
 import (
 	"github.com/kataras/iris/v12"
 
-	"go.api.backend/models"
+	"go.api.backend/data"
 )
 
 // BookRegister register the Books endpoints
@@ -24,13 +24,13 @@ func CatalogRegister(app *iris.Application) {
 // list endpoint for listing the  ...
 // @Summary Catalog
 // @Description Get all the books
-// @Tag catalogs
+// @Tags catalogs
 // Group Catalog
 // @Produce json
-// @Success 200 {object} models.Book "ok"
+// @Success 200 {object} data.Temporal "ok"
 // @Router /catalogs [get]
 func listCatalogs(ctx iris.Context) {
-	books := []models.Book{
+	books := []data.Temporal{
 		{"Mastering Concurrency in Go"},
 		{"Go Design Patterns"},
 		{"Black Hat Go"},
@@ -46,24 +46,24 @@ func listCatalogs(ctx iris.Context) {
 // create endpoint ...
 // @Summary Catalog
 // @Description Get all the books
-// @Tag catalogs
+// @Tags catalogs
 // Group Catalog
 // @Produce json
 // @Success 200 {string} string	"ok"
 // @Router /catalogs [post]
 func createCatalogs(ctx iris.Context) {
-	var b models.Book
+	var b data.Temporal
 	err := ctx.ReadJSON(&b)
 	// TIP: use ctx.ReadBody(&b) to bind
 	// any type of incoming data instead.
 	if err != nil {
-		ctx.StopWithProblem(iris.StatusBadRequest, iris.NewProblem().Title("Book creation failure").DetailErr(err))
+		ctx.StopWithProblem(iris.StatusBadRequest, iris.NewProblem().Title("Temporal creation failure").DetailErr(err))
 		// TIP: use ctx.StopWithError(code, err) when only
 		// plain text responses are expected on errors.
 		return
 	}
 
-	println("Received Book: " + b.Title)
+	println("Received Temporal: " + b.Title)
 
 	ctx.StatusCode(iris.StatusCreated)
 }

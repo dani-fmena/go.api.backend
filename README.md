@@ -1,4 +1,4 @@
-GO + Iris Api Backned
+GO + Iris Api Backend
 ==
 
 Intent to be a re-usable shell for GO + Iris backends apis projects  

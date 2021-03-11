@@ -19,6 +19,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "books"
+                ],
                 "summary": "Books",
                 "responses": {
                     "200": {
@@ -33,9 +36,12 @@
                 }
             },
             "post": {
-                "description": "Get all the books",
+                "description": "Create a book",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "books"
                 ],
                 "summary": "Books",
                 "responses": {
@@ -54,6 +60,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "catalogs"
+                ],
                 "summary": "Catalog",
                 "responses": {
                     "200": {
@@ -68,6 +77,9 @@
                 "description": "Get all the books",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "catalogs"
                 ],
                 "summary": "Catalog",
                 "responses": {

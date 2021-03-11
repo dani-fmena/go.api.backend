@@ -25,7 +25,7 @@ var doc = `{
         },
         "version": "{{.Version}}"
     },
-    "host": "{{.Host}}",
+    "host": "{{.host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
         "/books": {
@@ -34,6 +34,9 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "books"
+                ],
                 "summary": "Books",
                 "responses": {
                     "200": {
@@ -41,16 +44,19 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Book"
+                                "$ref": "#/definitions/data.Book"
                             }
                         }
                     }
                 }
             },
             "post": {
-                "description": "Get all the books",
+                "description": "Create a book",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "books"
                 ],
                 "summary": "Books",
                 "responses": {
@@ -69,12 +75,15 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "catalogs"
+                ],
                 "summary": "Catalog",
                 "responses": {
                     "200": {
                         "description": "ok",
                         "schema": {
-                            "$ref": "#/definitions/models.Book"
+                            "$ref": "#/definitions/data.Book"
                         }
                     }
                 }
@@ -83,6 +92,9 @@ var doc = `{
                 "description": "Get all the books",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "catalogs"
                 ],
                 "summary": "Catalog",
                 "responses": {
@@ -97,7 +109,7 @@ var doc = `{
         }
     },
     "definitions": {
-        "models.Book": {
+        "data.Book": {
             "type": "object",
             "properties": {
                 "title": {
