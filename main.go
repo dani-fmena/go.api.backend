@@ -29,9 +29,11 @@ import (
 func main() {
 	app := iris.New()
 
+	// TODO document all the folders
+
 	// region ======== GLOBALS ===============================================================
 
-	c := services.NewConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") // Configuration Services
+	c := services.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") // Configuration Services
 	// endregion =============================================================================
 
 	// region ======== MIDDLEWARES ===========================================================
@@ -43,27 +45,29 @@ func main() {
 	// Customs
 	// endregion =============================================================================
 
-	// region ======== DATABASE BOOTSTRAPPING =================================================
+	// region ======== DATABASE BOOTSTRAPPING ================================================
 
 	pgdb := database.Bootstrap(c) 							// Starting the database and creating the engine
-	database.CreateSchema(pgdb, false)					// Table creation method
+	database.CreateSchema(pgdb, false)				// Table creation method
 	// endregion =============================================================================
 
 	// region ======== ENDPOINT REGISTRATIONS ================================================
 
 	endpoints.BookRegister(app, pgdb)
-	endpoints.CatalogRegister(app)
 	// endregion =============================================================================
 
 	// region ======== SWAGGER REGISTRATION ==================================================
 
 	// version https://gitee.com/luckymonkey006/swagger
-	config := &swagger.Config{
-		URL: "http://localhost:8080/swagger/doc.json", // The url pointing to API definition
+
+	// sc == swagger config
+	sc := &swagger.Config {
+		DeepLinking: true,
+		URL: "http://localhost:8080/swagger/apidoc.json", // The url pointing to API definition
 	}
 
 	// use swagger middleware to
-	app.Get("/swagger/{any:path}", swagger.CustomWrapHandler(config, swaggerFiles.Handler))
+	app.Get("/swagger/{any:path}", swagger.CustomWrapHandler(sc, swaggerFiles.Handler))
 	// endregion =============================================================================
 
 	app.Run(iris.Addr(":8080"))

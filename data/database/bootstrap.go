@@ -8,6 +8,8 @@ import (
 	"go.api.backend/services"
 )
 
+// TODO do migrations https://github.com/go-pg/migrations
+
 // Bootstrap create the database engine object
 //
 // - c [*pg.DB] ~ Pointer to the database connection
@@ -30,7 +32,7 @@ func Bootstrap(c *services.SvcConfig) *pg.DB {
 // - db [*pg.DB] ~ Postgres database instance
 //
 // - testing [bool] ~ Tells if wee need to run the method just for checking purpose (everything OK with the table creation flow)
-func CreateSchema(db *pg.DB, testing bool) error {
+func CreateSchema(db *pg.DB, testing bool) {
 	schemas := []interface{} {
 		(*models.Book)(nil),
 	}
@@ -45,5 +47,4 @@ func CreateSchema(db *pg.DB, testing bool) error {
 			println(err.Error())
 		}
 	}
-	return nil
 }

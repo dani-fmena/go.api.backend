@@ -15,22 +15,28 @@
     "paths": {
         "/books": {
             "get": {
-                "description": "Get all the books",
+                "description": "Get the books in the repository",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "Books"
                 ],
-                "summary": "Books",
+                "summary": "Get Books",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of Books",
                         "schema": {
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/models.Book"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error, struct same as Iris.Problem",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
                         }
                     }
                 }
@@ -54,39 +60,86 @@
                 }
             }
         },
-        "/catalogs": {
+        "/books/{id}": {
             "get": {
-                "description": "Get all the books",
+                "description": "Get a book through its Id",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "catalogs"
+                    "Books"
                 ],
-                "summary": "Catalog",
+                "summary": "Get book by Id",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "uint32",
+                        "description": "Requested Book Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "ok",
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Book"
+                        }
+                    },
+                    "404": {
+                        "description": "Book not found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error, same struct as Iris.Problem",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
                         }
                     }
                 }
             },
-            "post": {
-                "description": "Get all the books",
+            "delete": {
+                "description": "Deletes a Book by its Id",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "catalogs"
+                    "Books"
                 ],
-                "summary": "Catalog",
+                "summary": "Delete a Book",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "uint32",
+                        "description": "Account ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
-                    "200": {
-                        "description": "ok",
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "404": {
+                        "description": "Book not found",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal error, same struct as Iris.Problem",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
                         }
                     }
                 }
@@ -94,11 +147,45 @@
         }
     },
     "definitions": {
+        "dto.ApiError": {
+            "type": "object",
+            "properties": {
+                "detail": {
+                    "type": "string",
+                    "example": "Some error details"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 503
+                },
+                "title": {
+                    "type": "string",
+                    "example": "err_code"
+                }
+            }
+        },
         "models.Book": {
             "type": "object",
             "properties": {
-                "title": {
-                    "type": "string"
+                "createdAt": {
+                    "type": "string",
+                    "example": "2021-03-12T02:11:03.292442-05:00"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 24
+                },
+                "items": {
+                    "type": "integer",
+                    "example": 46
+                },
+                "name": {
+                    "type": "string",
+                    "example": "The Book of Eli"
+                },
+                "updatedAt": {
+                    "type": "string",
+                    "example": "0001-01-01T00:00:00Z"
                 }
             }
         }

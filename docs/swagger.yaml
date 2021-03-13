@@ -1,8 +1,33 @@
 basePath: /
 definitions:
+  dto.ApiError:
+    properties:
+      detail:
+        example: Some error details
+        type: string
+      status:
+        example: 503
+        type: integer
+      title:
+        example: err_code
+        type: string
+    type: object
   models.Book:
     properties:
-      title:
+      createdAt:
+        example: "2021-03-12T02:11:03.292442-05:00"
+        type: string
+      id:
+        example: 24
+        type: integer
+      items:
+        example: 46
+        type: integer
+      name:
+        example: The Book of Eli
+        type: string
+      updatedAt:
+        example: "0001-01-01T00:00:00Z"
         type: string
     type: object
 host: localhost:8080
@@ -17,19 +42,23 @@ info:
 paths:
   /books:
     get:
-      description: Get all the books
+      description: Get the books in the repository
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of Books
           schema:
             items:
-              $ref: '#/definitions/data.Book'
+              $ref: '#/definitions/models.Book'
             type: array
-      summary: Books
+        "500":
+          description: Internal error, struct same as Iris.Problem
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+      summary: Get Books
       tags:
-      - books
+      - Books
     post:
       description: Create a book
       produces:
@@ -42,29 +71,61 @@ paths:
       summary: Books
       tags:
       - books
-  /catalogs:
+  /books/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a Book by its Id
+      parameters:
+      - description: Account ID
+        format: uint32
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Book not found
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+        "500":
+          description: Internal error, same struct as Iris.Problem
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+      summary: Delete a Book
+      tags:
+      - Books
     get:
-      description: Get all the books
+      consumes:
+      - application/json
+      description: Get a book through its Id
+      parameters:
+      - description: Requested Book Id
+        format: uint32
+        in: path
+        name: id
+        required: true
+        type: integer
       produces:
       - application/json
       responses:
         "200":
-          description: ok
+          description: OK
           schema:
-            $ref: '#/definitions/data.Book'
-      summary: Catalog
-      tags:
-      - catalogs
-    post:
-      description: Get all the books
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: ok
+            $ref: '#/definitions/models.Book'
+        "404":
+          description: Book not found
           schema:
-            type: string
-      summary: Catalog
+            $ref: '#/definitions/dto.ApiError'
+        "500":
+          description: Internal error, same struct as Iris.Problem
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+      summary: Get book by Id
       tags:
-      - catalogs
+      - Books
 swagger: "2.0"
