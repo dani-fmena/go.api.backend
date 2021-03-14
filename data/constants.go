@@ -5,6 +5,7 @@ const (
 	ErrGeneric = "err.generic"
 	ErrRepositoryOps = "err.repo_ops"
 	ErrNotFound = "err.not_found"
+	ErrDuplicateKey = "err.duplicate_key"
 )
 // endregion =============================================================================
 

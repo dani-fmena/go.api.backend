@@ -29,8 +29,6 @@ import (
 func main() {
 	app := iris.New()
 
-	// TODO document all the folders
-
 	// region ======== GLOBALS ===============================================================
 
 	c := services.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") // Configuration Services

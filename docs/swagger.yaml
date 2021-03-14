@@ -53,24 +53,42 @@ paths:
               $ref: '#/definitions/models.Book'
             type: array
         "500":
-          description: Internal error, struct same as Iris.Problem
+          description: err.repo_ops
           schema:
             $ref: '#/definitions/dto.ApiError'
       summary: Get Books
       tags:
       - Books
     post:
-      description: Create a book
+      consumes:
+      - application/json
+      description: Create a new book from the passed data
+      parameters:
+      - description: Book Data
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/models.Book'
       produces:
       - application/json
       responses:
-        "200":
-          description: ok
+        "201":
+          description: OK
           schema:
-            type: string
-      summary: Books
+            $ref: '#/definitions/models.Book'
+        "422":
+          description: "err.duplicate_key || Invalid data\"\t// TODO learn to make
+            validation of params and body, make the response 400 (bad request)"
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+        "500":
+          description: err.repo_ops || Internal error, same struct as Iris.Problem
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+      summary: Create a new book
       tags:
-      - books
+      - Books
   /books/{id}:
     delete:
       consumes:
@@ -89,11 +107,11 @@ paths:
         "204":
           description: No Content
         "404":
-          description: Book not found
+          description: err.not_found
           schema:
             $ref: '#/definitions/dto.ApiError'
         "500":
-          description: Internal error, same struct as Iris.Problem
+          description: err.repo_ops
           schema:
             $ref: '#/definitions/dto.ApiError'
       summary: Delete a Book
@@ -118,7 +136,7 @@ paths:
           schema:
             $ref: '#/definitions/models.Book'
         "404":
-          description: Book not found
+          description: err.not_found
           schema:
             $ref: '#/definitions/dto.ApiError'
         "500":

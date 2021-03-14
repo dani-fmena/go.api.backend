@@ -49,7 +49,7 @@ var doc = `{
                         }
                     },
                     "500": {
-                        "description": "Internal error, struct same as Iris.Problem",
+                        "description": "err.repo_ops",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -57,19 +57,45 @@ var doc = `{
                 }
             },
             "post": {
-                "description": "Create a book",
+                "description": "Create a new book from the passed data",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "books"
+                    "Books"
                 ],
-                "summary": "Books",
-                "responses": {
-                    "200": {
-                        "description": "ok",
+                "summary": "Create a new book",
+                "parameters": [
+                    {
+                        "description": "Book Data",
+                        "name": "book",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.Book"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Book"
+                        }
+                    },
+                    "422": {
+                        "description": "err.duplicate_key || Invalid data\"\t// TODO learn to make validation of params and body, make the response 400 (bad request)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "err.repo_ops || Internal error, same struct as Iris.Problem",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
                         }
                     }
                 }
@@ -106,7 +132,7 @@ var doc = `{
                         }
                     },
                     "404": {
-                        "description": "Book not found",
+                        "description": "err.not_found",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -146,13 +172,13 @@ var doc = `{
                         "description": "No Content"
                     },
                     "404": {
-                        "description": "Book not found",
+                        "description": "err.not_found",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
                     },
                     "500": {
-                        "description": "Internal error, same struct as Iris.Problem",
+                        "description": "err.repo_ops",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
