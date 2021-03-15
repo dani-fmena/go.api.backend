@@ -78,7 +78,7 @@
                         }
                     },
                     "500": {
-                        "description": "err.repo_ops || Internal error, same struct as Iris.Problem",
+                        "description": "err.repo_ops || Internal error",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -123,7 +123,65 @@
                         }
                     },
                     "500": {
-                        "description": "Internal error, same struct as Iris.Problem",
+                        "description": "Internal error",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "update the book with the specified Id with the data passed in the request body",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Books"
+                ],
+                "summary": "Update the indicated book",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "format": "uint32",
+                        "description": "Book ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Book Data",
+                        "name": "book",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Book"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Book"
+                        }
+                    },
+                    "404": {
+                        "description": "err.not_found",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "422": {
+                        "description": "err.duplicate_key || Invalid data\"\t// TODO learn to make validation of params and body, make the response 400 (bad request)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "err.repo_ops || Internal error",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -146,7 +204,7 @@
                     {
                         "type": "integer",
                         "format": "uint32",
-                        "description": "Account ID",
+                        "description": "Book ID",
                         "name": "id",
                         "in": "path",
                         "required": true

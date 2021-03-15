@@ -9,7 +9,7 @@ import (
 
 	"go.api.backend/data"
 	"go.api.backend/repo/db"
-	"go.api.backend/services"
+	"go.api.backend/service"
 )
 
 // BookRegister register the Books endpoints as routes in the Iris app
@@ -28,10 +28,9 @@ func BookRegister(app *iris.Application, dbCtx *pg.DB) {
 		// booksRouter.Use(iris.Compression)
 
 		// --- DEPENDENCIES ---
-		hero.Register(services.NewSvcBooks(&bookRepo))
+		hero.Register(service.NewSvcBooks(&bookRepo))
 
 		// TODO Luego que pinche cambia a ver si puedes registrar directo con el router
-		// TODO investiga el tratamiento de error
 		// TODO Loguea a un archivo, las operaciones ralizadas y pasa eso a los servicios, llamoago asyncor, kataras tiene un ejemplo
 		// TODO mke a change log and a readme with the description of the shell project
 		// TODO versionado de la APi
@@ -39,9 +38,10 @@ func BookRegister(app *iris.Application, dbCtx *pg.DB) {
 
 		booksRouter.Get("/", hero.Handler(getBooks))
 		booksRouter.Get("/{id:uint64}", hero.Handler(getBookById))
-		booksRouter.Delete("/{id:uint64}", hero.Handler(delBookByID))
 		booksRouter.Post("/", hero.Handler(createBook))
-		// booksRouter.Post("/", createBooks)							// when no dependencies (but context) is needed
+		booksRouter.Put("/{id:uint64}", hero.Handler(updateBook))				// PUT vs PATCH https://stackoverflow.com/a/34400076/4196056
+		booksRouter.Delete("/{id:uint64}", hero.Handler(delBookByID))
+		// booksRouter.Post("/", createBooks)											// when no dependencies (but context) is needed
 	}
 }
 // region ======== ENDPOINT HANDLERS =====================================================
@@ -54,14 +54,14 @@ func BookRegister(app *iris.Application, dbCtx *pg.DB) {
 // @Success 200 {array} models.Book "List of Books"
 // @Failure 500 {object} dto.ApiError "err.repo_ops"
 // @Router /books [get]
-func getBooks(ctx iris.Context, svc services.ServiceBook) {
+func getBooks(ctx iris.Context, svc service.ServiceBook) {
 	books, err := svc.GetAll()
 
 	// Preparing the response
 	if err != nil {
-		services.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+		service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
 	} else {
-		services.ResponseOKWithData(iris.StatusOK, books, &ctx)
+		service.ResponseOKWithData(iris.StatusOK, books, &ctx)
 	}
 }
 
@@ -76,17 +76,17 @@ func getBooks(ctx iris.Context, svc services.ServiceBook) {
 // @Success 404 {object} dto.ApiError "err.not_found"
 // @Failure 500 {object} dto.ApiError "Internal error"
 // @Router /books/{id} [get]
-func getBookById(ctx iris.Context, svc services.ServiceBook) {
+func getBookById(ctx iris.Context, svc service.ServiceBook) {
 	bookId := ctx.Params().GetUintDefault("id", 0)
 	book, err := svc.GetByID(&bookId)
 
 	// Preparing the response
 	if book.CreatedAt != *new(time.Time) && err == nil {											// 200 Founded
-		services.ResponseOKWithData(iris.StatusOK, book, &ctx)
+		service.ResponseOKWithData(iris.StatusOK, book, &ctx)
 	} else if err != nil && err.Error()[4:11] == data.StrDB404 {									// 404 from repo
-		services.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx)
+		service.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx)
 	} else if err != nil {
-		services.ResponseErr(iris.StatusInternalServerError, data.ErrGeneric, err.Error(), &ctx)	// returning some other error may happen
+		service.ResponseErr(iris.StatusInternalServerError, data.ErrGeneric, err.Error(), &ctx) // returning some other error may happen
 	}
 
 	// Regarding the "Nilnes" IDE warning, I think the book will not be null. Se the called service method.
@@ -98,22 +98,22 @@ func getBookById(ctx iris.Context, svc services.ServiceBook) {
 // @Tags Books
 // @Accept  json
 // @Produce  json
-// @Param 	id	path	int true	"Account ID"	Format(uint32)
+// @Param 	id	path	int true	"Book ID"	Format(uint32)
 // @Success 204 "No Content"
 // @Success 404 {object} dto.ApiError "err.not_found"
 // @Failure 500 {object} dto.ApiError "err.repo_ops"
 // @Router /books/{id} [delete]
-func delBookByID(ctx iris.Context, svc services.ServiceBook) {
+func delBookByID(ctx iris.Context, svc service.ServiceBook) {
 	bookId := ctx.Params().GetUintDefault("id", 0)
 	deleted, err := svc.DelByID(&bookId)
 
 	// Preparing the response
 	if err == nil && deleted == 0 {
-		services.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx)  				// 404 from repo
+		service.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx) // 404 from repo
 	} else if err == nil && deleted > 0 {
-		services.ResponseDelete(&ctx) 																// 204 & empty data
+		service.ResponseDelete(&ctx) // 204 & empty data
 	} else if err != nil {
-		services.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)	// returning some other error may happen
+		service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx) // returning some other error may happen
 	}
 }
 
@@ -128,22 +128,59 @@ func delBookByID(ctx iris.Context, svc services.ServiceBook) {
 // @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"	// TODO learn to make validation of params and body, make the response 400 (bad request)
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books [post]
-func createBook(ctx iris.Context, svc services.ServiceBook) {
+func createBook(ctx iris.Context, svc service.ServiceBook) {
 	var b models.Book
 
 	// TIP: use ctx.ReadBody(&b) to bind any type of incoming data instead. E.g it comes in handy when the client request are using form-data
-	if e1 := ctx.ReadJSON(&b); e1 != nil {
-		services.ResponseErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e1.Error(), &ctx) 		// 422 errors may happen in the marshaling process
-	} else if e2 := svc.Create(&b); e2 != nil {
+	if e := ctx.ReadJSON(&b); e != nil {
+		service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+	} else if err := svc.Create(&b); err != nil {
 
-		if e2.Error() == data.ErrDuplicateKey {															// 422 Unprocessable 'cause duplicate key
-			services.ResponseErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, "", &ctx)
-		} else {																						// 500
-			services.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, e2.Error(), &ctx)
+		if err.Error() == data.ErrDuplicateKey { 															// 422 Unprocessable 'cause duplicate key
+			service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, "", &ctx)
+		} else {																							// 500
+			service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
 		}
 
 	} else {		// All good
-		services.ResponseOKWithData(iris.StatusCreated, b, &ctx)
+		service.ResponseOKWithData(iris.StatusCreated, b, &ctx)
 	}
 }
+
+// updateBook update the book having the Id passed as path parameter, with the data passed in the request body
+// @Summary Update the indicated book
+// @Description Update the book having the specified Id with the data passed in the request body
+// @Tags Books
+// @Accept	json
+// @Produce json
+// @Param 	id		path	int			true	"Book ID"	Format(uint32)
+// @Param	book	body	models.Book	true	"Book Data"
+// @Success 204 {object} models.Book "OK"
+// @Success 404 {object} dto.ApiError "err.not_found"
+// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"	// TODO learn to make validation of params and body, make the response 400 (bad request)
+// @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
+// @Router /books/{id} [put]
+func updateBook(ctx iris.Context, svc service.ServiceBook) {
+	var book models.Book
+
+	// Getting the data
+	book.Id = ctx.Params().GetUintDefault("id", 0)
+	if e := ctx.ReadJSON(&book); e != nil {
+		service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+	}
+
+	// Updating
+	updated, err := svc.UpdateBook(&book)
+
+	if err != nil && err.Error() == data.ErrNotFound {													// 404 Wrong ID
+		service.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx)
+	} else if err != nil && err.Error() == data.ErrDuplicateKey {										// Same unique field, name in this case
+		service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, "", &ctx)
+	} else if err != nil {																				// Something happen
+		service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+	} else if updated > 0 {																				// All good, book was updated
+		service.ResponseOK(&ctx)
+	}
+}
+
 // endregion =============================================================================

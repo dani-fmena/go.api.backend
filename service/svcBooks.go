@@ -1,16 +1,17 @@
-package services
+package service
 
 import (
 	"go.api.backend/data/models"
 	"go.api.backend/repo/db"
 )
 
-// ServiceBook is a sample for the services interface, defining its methods / functions
+// ServiceBook is a sample for the service interface, defining its methods / functions
 type ServiceBook interface {
 	GetAll() ([]models.Book, error)
 	GetByID(Id *uint) (models.Book, error)
 	DelByID(Id *uint) (uint, error)
 	Create(book *models.Book) error
+	UpdateBook(book *models.Book) (uint, error)
 }
 
 type svcBook struct {
@@ -57,4 +58,11 @@ func (s *svcBook) DelByID(Id *uint) (uint, error) {
 // - book [*models.Book] ~ New book struct to be created
 func (s *svcBook) Create(book *models.Book) error {
 	return (*s.repo).Add(book)
+}
+
+// UpdateBook update a book with the giving data
+//
+// - book [*models.Book] ~ Book data to be updated
+func (s *svcBook) UpdateBook(book *models.Book) (uint, error) {
+	return (*s.repo).Update(book)
 }

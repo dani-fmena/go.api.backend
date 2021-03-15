@@ -83,7 +83,7 @@ paths:
           schema:
             $ref: '#/definitions/dto.ApiError'
         "500":
-          description: err.repo_ops || Internal error, same struct as Iris.Problem
+          description: err.repo_ops || Internal error
           schema:
             $ref: '#/definitions/dto.ApiError'
       summary: Create a new book
@@ -95,7 +95,7 @@ paths:
       - application/json
       description: Deletes a Book by its Id
       parameters:
-      - description: Account ID
+      - description: Book ID
         format: uint32
         in: path
         name: id
@@ -140,10 +140,51 @@ paths:
           schema:
             $ref: '#/definitions/dto.ApiError'
         "500":
-          description: Internal error, same struct as Iris.Problem
+          description: Internal error
           schema:
             $ref: '#/definitions/dto.ApiError'
       summary: Get book by Id
+      tags:
+      - Books
+    put:
+      consumes:
+      - application/json
+      description: update the book with the specified Id with the data passed in the
+        request body
+      parameters:
+      - description: Book ID
+        format: uint32
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Book Data
+        in: body
+        name: book
+        required: true
+        schema:
+          $ref: '#/definitions/models.Book'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Book'
+        "404":
+          description: err.not_found
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+        "422":
+          description: "err.duplicate_key || Invalid data\"\t// TODO learn to make
+            validation of params and body, make the response 400 (bad request)"
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+        "500":
+          description: err.repo_ops || Internal error
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+      summary: Update the indicated book
       tags:
       - Books
 swagger: "2.0"

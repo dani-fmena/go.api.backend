@@ -5,7 +5,7 @@ import (
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 	"go.api.backend/data/models"
-	"go.api.backend/services"
+	"go.api.backend/service"
 )
 
 // TODO do migrations https://github.com/go-pg/migrations
@@ -13,7 +13,7 @@ import (
 // Bootstrap create the database engine object
 //
 // - c [*pg.DB] ~ Pointer to the database connection
-func Bootstrap(c *services.SvcConfig) *pg.DB {
+func Bootstrap(c *service.SvcConfig) *pg.DB {
 
 	// Creating the database connection and getting the context
 	pgdb := pg.Connect(&pg.Options{Addr: c.Host, User: c.User, Password: c.Pass, Database: c.Database})

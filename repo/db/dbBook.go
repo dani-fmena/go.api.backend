@@ -5,6 +5,7 @@ import (
 	"github.com/go-pg/pg/v10"
 	"go.api.backend/data"
 	"go.api.backend/data/models"
+	"time"
 )
 
 type RepoDbBook interface {
@@ -12,6 +13,7 @@ type RepoDbBook interface {
 	GetByID(ent *models.Book) error
 	DelByID(Id *uint) (uint, error)
 	Add(ent *models.Book) error
+	Update(ent *models.Book) (uint, error)
 }
 
 type dbBooks struct {
@@ -42,7 +44,7 @@ func (r *dbBooks) GetByID(ent *models.Book) error {
 
 // DelByID delete an entity by Id. If no entity found then err != nil.
 // uint > 0 if any record was deleted, otherwise if 0 and no error then 404.
-// - entity [*uint] ~ If of the entity to be deleted
+// - Id [*uint] ~ Id of the entity to be deleted
 func (r *dbBooks) DelByID(Id *uint) (uint, error) {
 	b := models.Book{Id: *Id}
 
@@ -56,16 +58,42 @@ func (r *dbBooks) DelByID(Id *uint) (uint, error) {
 
 // Add a Book to the repository. If the book name already exist then err != nil.
 // If something occurs during the ops also err != nil.
-// - entity [*models.Book] ~ New book to be added to the repo
-func (r *dbBooks) Add(entity *models.Book) error {
+// - ent [*models.Book] ~ New book to be added to the repo
+func (r *dbBooks) Add(ent *models.Book) error {
 
-	isExist, e1 := r.Pgdb.Model(entity).Where("name = ?", entity.Name).Exists()
+	isExist, e1 := r.Pgdb.Model(ent).Where("name = ?", ent.Name).Exists()
 	if isExist && e1 == nil {
 		return errors.New(data.ErrDuplicateKey)
 	} else if e1 != nil {
 		return e1								// Something happen
 	} else {
-		_, e2 := r.Pgdb.Model(entity).Insert()  // I'm not using & 'cause the param is already a pointer
+		_, e2 := r.Pgdb.Model(ent).Insert()     // I'm not using & 'cause the param is already a pointer
 		return e2
+	}
+}
+
+// Update update a book with the giving data
+func (r *dbBooks) Update(ent *models.Book) (uint, error) {
+
+	ent.UpdatedAt = time.Now()
+	res, err := r.Pgdb.Model(ent).WherePK().Column("name", "items", "updated_at").Update()
+
+	if err != nil {			// Something Occurs
+		e := err
+
+		if err.Error()[7:12] == data.StrPgDuplicateKey {
+			e = errors.New(data.ErrDuplicateKey)		// Duplicated unique key field (name in this case)
+		}
+
+		return 0, e
+
+	} else {				// All good
+
+		if res != nil && res.RowsAffected() > 0 {		// Find & updated
+			return  1, nil
+		} else {
+			return 0, errors.New(data.ErrNotFound)		// 404
+		}
+
 	}
 }

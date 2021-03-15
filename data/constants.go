@@ -12,6 +12,7 @@ const (
 
 // region ======== SOME STRINGS ==========================================================
 const (
+	StrPgDuplicateKey = "23505" // Postgres error code for duplicate key
 	StrDB404 = "no rows"
 )
 // endregion =============================================================================

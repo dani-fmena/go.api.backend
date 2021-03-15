@@ -5,7 +5,7 @@ import (
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
 	"go.api.backend/data/database"
-	"go.api.backend/services"
+	"go.api.backend/service"
 
 	"github.com/iris-contrib/swagger/v12"              // swagger middleware for Iris
 	"github.com/iris-contrib/swagger/v12/swaggerFiles" // swagger embed files
@@ -31,7 +31,7 @@ func main() {
 
 	// region ======== GLOBALS ===============================================================
 
-	c := services.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") // Configuration Services
+	c := service.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") // Configuration Services
 	// endregion =============================================================================
 
 	// region ======== MIDDLEWARES ===========================================================

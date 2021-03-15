@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"github.com/kataras/iris/v12"
@@ -28,6 +28,13 @@ func ResponseOKWithData(status int, data interface{}, ctx *iris.Context)  {
 		(*ctx).Application().Logger().Error(err.Error())
 	}
 	(*ctx).StatusCode(status)
+}
+
+// ResponseOK create a response OK but with an empty content (204)
+//
+// - ctx [*iris.Context] ~ Iris Request context
+func ResponseOK(ctx *iris.Context)  {
+	(*ctx).StatusCode(iris.StatusNoContent)
 }
 
 // ResponseDelete create response 204. It's delete confirmation wit empty retrieving data.
