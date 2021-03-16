@@ -1,4 +1,4 @@
-package service
+package utils
 
 import "github.com/tkanos/gonfig"
 
@@ -12,6 +12,9 @@ type conf struct {
 	User     string
 	Pass     string
 	Database string
+
+	// Environment
+	Debug bool
 }
 
 // SvcConfig unexported configuration service struct
@@ -32,5 +35,5 @@ func NewSvcConfig(path string) *SvcConfig {
 		panic(err)
 	}
 
-	return &SvcConfig{path, c}			// We are using struct composition here. Hence the anonymous field (https://golangbot.com/inheritance/)
+	return &SvcConfig{path, c} // We are using struct composition here. Hence the anonymous field (https://golangbot.com/inheritance/)
 }

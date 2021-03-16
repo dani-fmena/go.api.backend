@@ -10,6 +10,14 @@ const (
 // endregion =============================================================================
 
 
+// region ======== ERROR DETAILS =========================================================
+const (
+	ErrDetNotFound = "Resource not found"
+	ErrDetDuplicateKey = "A unique resource field is duplicated"
+)
+// endregion =============================================================================
+
+
 // region ======== SOME STRINGS ==========================================================
 const (
 	StrPgDuplicateKey = "23505" // Postgres error code for duplicate key

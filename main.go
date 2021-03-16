@@ -5,7 +5,7 @@ import (
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
 	"go.api.backend/data/database"
-	"go.api.backend/service"
+	"go.api.backend/service/utils"
 
 	"github.com/iris-contrib/swagger/v12"              // swagger middleware for Iris
 	"github.com/iris-contrib/swagger/v12/swaggerFiles" // swagger embed files
@@ -31,7 +31,9 @@ func main() {
 
 	// region ======== GLOBALS ===============================================================
 
-	c := service.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") // Configuration Services
+	// Services
+	c := utils.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") 				// Configuration Service
+	r := utils.NewSvcResponse(c)																// Response Service
 	// endregion =============================================================================
 
 	// region ======== MIDDLEWARES ===========================================================
@@ -51,7 +53,7 @@ func main() {
 
 	// region ======== ENDPOINT REGISTRATIONS ================================================
 
-	endpoints.BookRegister(app, pgdb)
+	endpoints.NewBookHandler(app, pgdb, r)
 	// endregion =============================================================================
 
 	// region ======== SWAGGER REGISTRATION ==================================================

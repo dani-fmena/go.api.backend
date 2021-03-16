@@ -1,3 +1,3 @@
-> This package / folder holds for *data transfer objects*.
+> This package / folder holds *data transfer objects*.
 > 
-> Also holds the struct used by a mapper for IN & OUT structs / objects
+> Also holds the struct used by a mapper for IN & OUT request and responses structs / objects

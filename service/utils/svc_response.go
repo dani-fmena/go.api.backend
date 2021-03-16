@@ -1,24 +1,31 @@
-package service
+package utils
 
 import (
 	"github.com/kataras/iris/v12"
 )
-// We could create a structure so we don't have to pass the Iris Context in all the functions, but
-// that way we have to create a different instance of this service in each endpoint wasting memory,
-// also the context may be difference on each request, so I think is better (but annoying) to pass
-// a pointer to the the context in each case.
 
 
-// region ======== RESPONSES =============================================================
+type SvcResponse struct {
+	appConf *SvcConfig
+}
 
-// ResponseOKWithData create response 200 with json data in to the context.
+// NewSvcResponse create a response service instance. Depends on the app configuration instance
+//
+// appConf [*SvcConfig] ~ App conf instance pointer
+func NewSvcResponse(appConf *SvcConfig) *SvcResponse {
+	return &SvcResponse{appConf: appConf}
+}
+
+// region ======== OK RESPONSES ==========================================================
+
+// RespOKWithData create response 200 with json data in to the context.
 //
 // - status [int] ~ Integer represent HTTP status for the response. iris.Status constants will be used
 //
 // - data [interface] ~ "Object" to be marshalled in to the context.
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func ResponseOKWithData(status int, data interface{}, ctx *iris.Context)  {
+func (s SvcResponse) RespOKWithData(status int, data interface{}, ctx *iris.Context)  {
 	// TIP: negotiate the response between server's prioritizes
 	// and client's requirements, instead of ctx.JSON:
 	// ctx.Negotiation().JSON().MsgPack().Protobuf()
@@ -30,26 +37,26 @@ func ResponseOKWithData(status int, data interface{}, ctx *iris.Context)  {
 	(*ctx).StatusCode(status)
 }
 
-// ResponseOK create a response OK but with an empty content (204)
+// RespOK create a response OK but with an empty content (204)
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func ResponseOK(ctx *iris.Context)  {
+func (s SvcResponse) RespOK(ctx *iris.Context)  {
 	(*ctx).StatusCode(iris.StatusNoContent)
 }
 
-// ResponseDelete create response 204. It's delete confirmation wit empty retrieving data.
+// RespDelete create response 204. It's delete confirmation wit empty retrieving data.
 // So, the client don't have to expect eny data and, we reduce some traffic.
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func ResponseDelete(ctx *iris.Context)  {
+func (s SvcResponse) RespDelete(ctx *iris.Context)  {
 	(*ctx).StatusCode(iris.StatusNoContent)
 }
 // endregion =============================================================================
 
 // region ======== ERROR RESPONSES =======================================================
 
-// ResponseErr create and log an 'Error Response' to the stdout and set it up in the request context.
-// Also set the response status = specific status code, so we can respond the request accordingly (application/problem+json), thanks to the iris.Context use.
+// RespErr create and log an 'Error Response' to the stdout and setup the request context properly.
+// Also set the response status = specific status code, so we can respond the request accordingly (application/problem+json).
 // Ideally, this should be used for client error series (400s) or server error series (500)
 //
 // - status [int] ~ Integer represent HTTP status for the response. iris.Status constants will be used
@@ -59,10 +66,13 @@ func ResponseDelete(ctx *iris.Context)  {
 // - detail [string] ~ Error detail
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func ResponseErr(status int, title string, detail string, ctx *iris.Context) {
-	(*ctx).StopWithProblem(status, iris.NewProblem().Title(title).Detail(detail))
+func (s SvcResponse) RespErr(status int, title string, detail string, ctx *iris.Context) {
+	d := detail
 
-	// TODO if some debug var is set, don't send any detail ever in the response. Maybe you have to make the endpoint into structs with funcion to paas the config var easy
+	// If the environment debug config isn't true then retrieve no details
+	if s.appConf.Debug != true {d = ""}
+
+	(*ctx).StopWithProblem(status, iris.NewProblem().Title(title).Detail(d))
 
 	// TODO log to a file
 	// s.app.Logger().Warn(detail)

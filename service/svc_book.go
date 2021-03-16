@@ -5,8 +5,8 @@ import (
 	"go.api.backend/repo/db"
 )
 
-// ServiceBook is a sample for the service interface, defining its methods / functions
-type ServiceBook interface {
+// SvcBook is a sample for the service interface, defining its methods / functions
+type SvcBook interface {
 	GetAll() ([]models.Book, error)
 	GetByID(Id *uint) (models.Book, error)
 	DelByID(Id *uint) (uint, error)
@@ -24,7 +24,7 @@ type svcBook struct {
 // As a result, different repositories type can be used with this same logic without any additional changes here.
 //
 // - repo [*db.RepoDbBook] ~ Repository instance
-func NewSvcBooks(repo *db.RepoDbBook) ServiceBook {
+func NewSvcBooks(repo *db.RepoDbBook) SvcBook {
 	return &svcBook{repo}
 }
 

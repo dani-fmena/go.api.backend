@@ -30,7 +30,7 @@ func NewRepoDbBook(dbCtx *pg.DB) RepoDbBook {
 // - list [*[]models.Book] ~ A pointer to a slice for storing the query result
 func (r *dbBooks) GetAll(list *[]models.Book) error {
 
-	return r.Pgdb.Model(&list).Select()
+	return r.Pgdb.Model(list).Select()
 	// _, err := r.Pgdb.Query(list, "SELECT * FROM list") hard coded query sample, allow placeholder see the docs (https://pg.uptrace.dev/placeholders/)
 	// return err, this is another alternative 'cause the Pgdb method return the error
 }
@@ -79,13 +79,12 @@ func (r *dbBooks) Update(ent *models.Book) (uint, error) {
 	res, err := r.Pgdb.Model(ent).WherePK().Column("name", "items", "updated_at").Update()
 
 	if err != nil {			// Something Occurs
-		e := err
 
 		if err.Error()[7:12] == data.StrPgDuplicateKey {
-			e = errors.New(data.ErrDuplicateKey)		// Duplicated unique key field (name in this case)
+			return 0, errors.New(data.ErrDuplicateKey)		// Duplicated unique key field (name in this case)
 		}
 
-		return 0, e
+		return 0, err
 
 	} else {				// All good
 

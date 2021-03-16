@@ -3,8 +3,8 @@ package endpoints
 import (
 	"github.com/go-pg/pg/v10"
 	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/hero"
 	"go.api.backend/data/models"
+	"go.api.backend/service/utils"
 	"time"
 
 	"go.api.backend/data"
@@ -12,23 +12,38 @@ import (
 	"go.api.backend/service"
 )
 
-// BookRegister register the Books endpoints as routes in the Iris app
+type HBook struct {
+	response *utils.SvcResponse
+	service *service.SvcBook
+}
+
+// NewBookHandler create and register the Books handler and endpoints respectively. The registration create iris app routes
+// with their dedicated handlers. If you look at the params you will notice the dependencies used for instantiation of other
+// dependencies and for passing it to the handlers. Another way to do this is using iris DI system. This way we don't
+// have to create a struct for handler, we can just register the dependencies and the handlers.
 //
 // - app [*iris.Application] ~ Iris App instance
 //
-// - path [**pg.DB] ~ Postgres database instance
-func BookRegister(app *iris.Application, dbCtx *pg.DB) {
+// - path [*pg.DB] ~ Postgres database instance
+//
+// - r [*utils.SvcResponse] ~ Response service instance
+func NewBookHandler(app *iris.Application, dbCtx *pg.DB, r *utils.SvcResponse) HBook {
 
 	// --- VARS SETUP ---
-	bookRepo := db.NewRepoDbBook(dbCtx)
+	// TIP As an alternative, we may not use a pointer and leave the cleaning job to the GO garbage collector
+	bookRepo := db.NewRepoDbBook(dbCtx)									// Instantiating repo
+	bookService := service.NewSvcBooks(&bookRepo)						// Instantiating service
 
+	h := HBook{r, &bookService}
+
+	// --- REGISTERING ENDPOINTS ---
 	booksRouter := app.Party("/books") 						// This is a go closure, but with a named function
 	{
-		// --- GROUP MIDDLEWARES ---
+		// --- GROUP / PARTY MIDDLEWARES ---
 		// booksRouter.Use(iris.Compression)
 
 		// --- DEPENDENCIES ---
-		hero.Register(service.NewSvcBooks(&bookRepo))
+		// hero.Register(service.NewSvcBooks(&bookRepo))
 
 		// TODO Luego que pinche cambia a ver si puedes registrar directo con el router
 		// TODO Loguea a un archivo, las operaciones ralizadas y pasa eso a los servicios, llamoago asyncor, kataras tiene un ejemplo
@@ -36,14 +51,18 @@ func BookRegister(app *iris.Application, dbCtx *pg.DB) {
 		// TODO versionado de la APi
 		// TODO document all the folders (readmes)
 
-		booksRouter.Get("/", hero.Handler(getBooks))
-		booksRouter.Get("/{id:uint64}", hero.Handler(getBookById))
-		booksRouter.Post("/", hero.Handler(createBook))
-		booksRouter.Put("/{id:uint64}", hero.Handler(updateBook))				// PUT vs PATCH https://stackoverflow.com/a/34400076/4196056
-		booksRouter.Delete("/{id:uint64}", hero.Handler(delBookByID))
-		// booksRouter.Post("/", createBooks)											// when no dependencies (but context) is needed
+		booksRouter.Get("/", h.getBooks)
+		booksRouter.Get("/{id:uint64}", h.getBookById)
+		booksRouter.Post("/", h.createBook)
+		booksRouter.Put("/{id:uint64}", h.updateBook)				// PUT vs PATCH https://stackoverflow.com/a/34400076/4196056
+		booksRouter.Delete("/{id:uint64}", h.delBookByID)
+		// booksRouter.Get("/", hero.Handler(getBooks))					// sample with dependency injection
+		// booksRouter.Post("/", createBooks)							// when no dependencies injection (but context) is needed
 	}
+
+	return h
 }
+
 // region ======== ENDPOINT HANDLERS =====================================================
 
 // getBooks list all the books in the repository
@@ -54,14 +73,14 @@ func BookRegister(app *iris.Application, dbCtx *pg.DB) {
 // @Success 200 {array} models.Book "List of Books"
 // @Failure 500 {object} dto.ApiError "err.repo_ops"
 // @Router /books [get]
-func getBooks(ctx iris.Context, svc service.ServiceBook) {
-	books, err := svc.GetAll()
+func (h HBook) getBooks(ctx iris.Context) {
+	books, err := (*h.service).GetAll()
 
 	// Preparing the response
 	if err != nil {
-		service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
 	} else {
-		service.ResponseOKWithData(iris.StatusOK, books, &ctx)
+		(*h.response).RespOKWithData(iris.StatusOK, books, &ctx)
 	}
 }
 
@@ -76,17 +95,17 @@ func getBooks(ctx iris.Context, svc service.ServiceBook) {
 // @Success 404 {object} dto.ApiError "err.not_found"
 // @Failure 500 {object} dto.ApiError "Internal error"
 // @Router /books/{id} [get]
-func getBookById(ctx iris.Context, svc service.ServiceBook) {
+func(h HBook) getBookById(ctx iris.Context) {
 	bookId := ctx.Params().GetUintDefault("id", 0)
-	book, err := svc.GetByID(&bookId)
+	book, err := (*h.service).GetByID(&bookId)
 
 	// Preparing the response
 	if book.CreatedAt != *new(time.Time) && err == nil {											// 200 Founded
-		service.ResponseOKWithData(iris.StatusOK, book, &ctx)
+		(*h.response).RespOKWithData(iris.StatusOK, book, &ctx)
 	} else if err != nil && err.Error()[4:11] == data.StrDB404 {									// 404 from repo
-		service.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx)
+		(*h.response).RespErr(iris.StatusNotFound, data.ErrNotFound, data.ErrDetNotFound, &ctx)
 	} else if err != nil {
-		service.ResponseErr(iris.StatusInternalServerError, data.ErrGeneric, err.Error(), &ctx) // returning some other error may happen
+		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrGeneric, err.Error(), &ctx) // returning some other error may happen
 	}
 
 	// Regarding the "Nilnes" IDE warning, I think the book will not be null. Se the called service method.
@@ -103,17 +122,17 @@ func getBookById(ctx iris.Context, svc service.ServiceBook) {
 // @Success 404 {object} dto.ApiError "err.not_found"
 // @Failure 500 {object} dto.ApiError "err.repo_ops"
 // @Router /books/{id} [delete]
-func delBookByID(ctx iris.Context, svc service.ServiceBook) {
+func (h HBook) delBookByID(ctx iris.Context) {
 	bookId := ctx.Params().GetUintDefault("id", 0)
-	deleted, err := svc.DelByID(&bookId)
+	deleted, err := (*h.service).DelByID(&bookId)
 
 	// Preparing the response
 	if err == nil && deleted == 0 {
-		service.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx) // 404 from repo
+		(*h.response).RespErr(iris.StatusNotFound, data.ErrNotFound, data.ErrDetNotFound, &ctx) // 404 from repo
 	} else if err == nil && deleted > 0 {
-		service.ResponseDelete(&ctx) // 204 & empty data
+		(*h.response).RespDelete(&ctx) // 204 & empty data
 	} else if err != nil {
-		service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx) // returning some other error may happen
+		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx) // returning some other error may happen
 	}
 }
 
@@ -128,22 +147,22 @@ func delBookByID(ctx iris.Context, svc service.ServiceBook) {
 // @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"	// TODO learn to make validation of params and body, make the response 400 (bad request)
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books [post]
-func createBook(ctx iris.Context, svc service.ServiceBook) {
+func (h HBook) createBook(ctx iris.Context) {
 	var b models.Book
 
 	// TIP: use ctx.ReadBody(&b) to bind any type of incoming data instead. E.g it comes in handy when the client request are using form-data
 	if e := ctx.ReadJSON(&b); e != nil {
-		service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
-	} else if err := svc.Create(&b); err != nil {
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+	} else if err := (*h.service).Create(&b); err != nil {
 
 		if err.Error() == data.ErrDuplicateKey { 															// 422 Unprocessable 'cause duplicate key
-			service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, "", &ctx)
+			(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, data.ErrDetDuplicateKey, &ctx)
 		} else {																							// 500
-			service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+			(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
 		}
 
 	} else {		// All good
-		service.ResponseOKWithData(iris.StatusCreated, b, &ctx)
+		(*h.response).RespOKWithData(iris.StatusCreated, b, &ctx)
 	}
 }
 
@@ -160,26 +179,26 @@ func createBook(ctx iris.Context, svc service.ServiceBook) {
 // @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"	// TODO learn to make validation of params and body, make the response 400 (bad request)
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books/{id} [put]
-func updateBook(ctx iris.Context, svc service.ServiceBook) {
+func (h HBook) updateBook(ctx iris.Context) {
 	var book models.Book
 
 	// Getting the data
 	book.Id = ctx.Params().GetUintDefault("id", 0)
 	if e := ctx.ReadJSON(&book); e != nil {
-		service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
 	}
 
 	// Updating
-	updated, err := svc.UpdateBook(&book)
+	updated, err := (*h.service).UpdateBook(&book)
 
 	if err != nil && err.Error() == data.ErrNotFound {													// 404 Wrong ID
-		service.ResponseErr(iris.StatusNotFound, data.ErrNotFound, "", &ctx)
+		(*h.response).RespErr(iris.StatusNotFound, data.ErrNotFound, data.ErrDetNotFound, &ctx)
 	} else if err != nil && err.Error() == data.ErrDuplicateKey {										// Same unique field, name in this case
-		service.ResponseErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, "", &ctx)
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, data.ErrDetDuplicateKey, &ctx)
 	} else if err != nil {																				// Something happen
-		service.ResponseErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
 	} else if updated > 0 {																				// All good, book was updated
-		service.ResponseOK(&ctx)
+		(*h.response).RespOK(&ctx)
 	}
 }
 
