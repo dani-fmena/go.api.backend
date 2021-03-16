@@ -15,7 +15,7 @@ type SvcBook interface {
 }
 
 type svcBook struct {
-	repo *db.RepoDbBook
+	pRepo *db.RepoDbBook
 }
 
 // NewSvcBooks create the service Books that handles for the CRUD and other operations
@@ -23,46 +23,47 @@ type svcBook struct {
 // The code here decouple the data login from the higher level components.
 // As a result, different repositories type can be used with this same logic without any additional changes here.
 //
-// - repo [*db.RepoDbBook] ~ Repository instance
-func NewSvcBooks(repo *db.RepoDbBook) SvcBook {
-	return &svcBook{repo}
+// - pRepo [*db.RepoDbBook] ~ Repository instance pointer
+func NewSvcBooks(pRepo *db.RepoDbBook) SvcBook {
+	return &svcBook{pRepo}
 }
 
 // GetAll Get a list of all the books on the repository. If there is a error it's != from null
+// Return a slice of books
 func (s *svcBook) GetAll() ([]models.Book, error) {
 	list := make([]models.Book, 0)
 
-	return list, (*s.repo).GetAll(&list)
+	return list, (*s.pRepo).GetAll(&list)
 }
 
 // GetByID Get A book by its Id. If there is a error it's != from nil
 //
-// - id [*uint] ~ Book ID
-func (s *svcBook) GetByID(Id *uint) (models.Book, error) {
-	book := models.Book{Id: *Id}
+// - id [*uint] ~ Book ID pointer
+func (s *svcBook) GetByID(pId *uint) (models.Book, error) {
+	book := models.Book{Id: *pId}
 
-	return book, (*s.repo).GetByID(&book)
+	return book, (*s.pRepo).GetByID(&book)
 }
 
 // DelByID delete a book by its Id. If there is a error it's != from nil.
 // Row affected (first return data) > 0 if any record was deleted, otherwise if 0 and no error then 404.
 //
-// - id [*uint] ~ Book ID
-func (s *svcBook) DelByID(Id *uint) (uint, error) {
-	return (*s.repo).DelByID(Id)
+// - pId [*uint] ~ Book ID pointer
+func (s *svcBook) DelByID(pId *uint) (uint, error) {
+	return (*s.pRepo).DelByID(pId)
 }
 
 // Create creat a book. If there is a error it's != from nil.
 // If the name key exist then a duplicated key error will be returned
 //
-// - book [*models.Book] ~ New book struct to be created
-func (s *svcBook) Create(book *models.Book) error {
-	return (*s.repo).Add(book)
+// - pBook [*models.Book] ~ New book struct pointer to be created
+func (s *svcBook) Create(pBook *models.Book) error {
+	return (*s.pRepo).Add(pBook)
 }
 
 // UpdateBook update a book with the giving data
 //
-// - book [*models.Book] ~ Book data to be updated
-func (s *svcBook) UpdateBook(book *models.Book) (uint, error) {
-	return (*s.repo).Update(book)
+// - pBookDto [*models.Book] ~ Book data to be updated
+func (s *svcBook) UpdateBook(pBook *models.Book) (uint, error) {
+	return (*s.pRepo).Update(pBook)
 }

@@ -12,6 +12,27 @@ definitions:
         example: err_code
         type: string
     type: object
+  dto.BookCreateIn:
+    properties:
+      items:
+        example: 46
+        type: integer
+      name:
+        example: The Book of Eli
+        type: string
+    type: object
+  dto.BookUpdateIn:
+    properties:
+      id:
+        example: 24
+        type: integer
+      items:
+        example: 46
+        type: integer
+      name:
+        example: The Book of Eli
+        type: string
+    type: object
   models.Book:
     properties:
       createdAt:
@@ -69,7 +90,7 @@ paths:
         name: book
         required: true
         schema:
-          $ref: '#/definitions/models.Book'
+          $ref: '#/definitions/dto.BookCreateIn'
       produces:
       - application/json
       responses:
@@ -149,8 +170,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: update the book with the specified Id with the data passed in the
-        request body
+      description: Update the book having the specified Id with the data passed in
+        the request body
       parameters:
       - description: Book ID
         format: uint32
@@ -163,11 +184,11 @@ paths:
         name: book
         required: true
         schema:
-          $ref: '#/definitions/models.Book'
+          $ref: '#/definitions/dto.BookUpdateIn'
       produces:
       - application/json
       responses:
-        "204":
+        "200":
           description: OK
           schema:
             $ref: '#/definitions/models.Book'

@@ -10,6 +10,8 @@ import (
 	"github.com/iris-contrib/swagger/v12"              // swagger middleware for Iris
 	"github.com/iris-contrib/swagger/v12/swaggerFiles" // swagger embed files
 
+	"github.com/go-playground/validator/v10"
+
 	_ "github.com/lib/pq"
 
 	"go.api.backend/api/endpoints"
@@ -27,9 +29,12 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	app := iris.New()
-
 	// region ======== GLOBALS ===============================================================
+	v := validator.New()	// Validator instance
+	// TIP validation reference https://github.com/kataras/iris/wiki/Model-validation | https://github.com/go-playground/validator | https://medium.com/@apzuk3/input-validation-in-golang-bc24cdec1835
+
+	app := iris.New()		// App instance
+	app.Validator = v		// Register validation on the iris app
 
 	// Services
 	c := utils.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") 				// Configuration Service

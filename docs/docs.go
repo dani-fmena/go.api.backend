@@ -75,7 +75,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Book"
+                            "$ref": "#/definitions/dto.BookCreateIn"
                         }
                     }
                 ],
@@ -146,7 +146,7 @@ var doc = `{
                 }
             },
             "put": {
-                "description": "update the book with the specified Id with the data passed in the request body",
+                "description": "Update the book having the specified Id with the data passed in the request body",
                 "consumes": [
                     "application/json"
                 ],
@@ -172,12 +172,12 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Book"
+                            "$ref": "#/definitions/dto.BookUpdateIn"
                         }
                     }
                 ],
                 "responses": {
-                    "204": {
+                    "200": {
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Book"
@@ -260,6 +260,36 @@ var doc = `{
                 "title": {
                     "type": "string",
                     "example": "err_code"
+                }
+            }
+        },
+        "dto.BookCreateIn": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "integer",
+                    "example": 46
+                },
+                "name": {
+                    "type": "string",
+                    "example": "The Book of Eli"
+                }
+            }
+        },
+        "dto.BookUpdateIn": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 24
+                },
+                "items": {
+                    "type": "integer",
+                    "example": 46
+                },
+                "name": {
+                    "type": "string",
+                    "example": "The Book of Eli"
                 }
             }
         },

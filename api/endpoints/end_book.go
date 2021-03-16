@@ -3,7 +3,8 @@ package endpoints
 import (
 	"github.com/go-pg/pg/v10"
 	"github.com/kataras/iris/v12"
-	"go.api.backend/data/models"
+	"go.api.backend/data/dto"
+	"go.api.backend/data/mapper"
 	"go.api.backend/service/utils"
 	"time"
 
@@ -44,12 +45,6 @@ func NewBookHandler(app *iris.Application, dbCtx *pg.DB, r *utils.SvcResponse) H
 
 		// --- DEPENDENCIES ---
 		// hero.Register(service.NewSvcBooks(&bookRepo))
-
-		// TODO Luego que pinche cambia a ver si puedes registrar directo con el router
-		// TODO Loguea a un archivo, las operaciones ralizadas y pasa eso a los servicios, llamoago asyncor, kataras tiene un ejemplo
-		// TODO mke a change log and a readme with the description of the shell project
-		// TODO versionado de la APi
-		// TODO document all the folders (readmes)
 
 		booksRouter.Get("/", h.getBooks)
 		booksRouter.Get("/{id:uint64}", h.getBookById)
@@ -142,18 +137,28 @@ func (h HBook) delBookByID(ctx iris.Context) {
 // @Tags Books
 // @Accept	json
 // @Produce json
-// @Param	book	body	models.Book	true "Book Data"
+// @Param	book	body	dto.BookCreateIn	true	"Book Data"
 // @Success 201 {object} models.Book "OK"
-// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"	// TODO learn to make validation of params and body, make the response 400 (bad request)
+// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books [post]
 func (h HBook) createBook(ctx iris.Context) {
-	var b models.Book
+	var bDto dto.BookCreateIn
 
-	// TIP: use ctx.ReadBody(&b) to bind any type of incoming data instead. E.g it comes in handy when the client request are using form-data
-	if e := ctx.ReadJSON(&b); e != nil {
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
-	} else if err := (*h.service).Create(&b); err != nil {
+	// TIP: use ctx.ReadBody(&bDto) to bind any type of incoming data instead. E.g it comes in handy when the client request are using form-data
+	if e := ctx.ReadJSON(&bDto); e != nil {
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrVal, e.Error(), &ctx) // 422 ReadJSON do the validation here
+		return
+	}
+
+	// TIP ❗ this is just a sample to show the mapper use. I think the ReadJSON method do this trick when unmarshal the data.
+	// So, the mapper use maybe has more sense using it for the data responses for hiding fields to the client.
+	// Another mapper utility is fot use in combination of specifically defined strut for validation purpose
+	// Mapping
+	book := mapper.ToBookCreateV(&bDto)
+
+	err := (*h.service).Create(book)
+	if err != nil {
 
 		if err.Error() == data.ErrDuplicateKey { 															// 422 Unprocessable 'cause duplicate key
 			(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, data.ErrDetDuplicateKey, &ctx)
@@ -162,7 +167,7 @@ func (h HBook) createBook(ctx iris.Context) {
 		}
 
 	} else {		// All good
-		(*h.response).RespOKWithData(iris.StatusCreated, b, &ctx)
+		(*h.response).RespOKWithData(iris.StatusCreated, book, &ctx)
 	}
 }
 
@@ -172,24 +177,28 @@ func (h HBook) createBook(ctx iris.Context) {
 // @Tags Books
 // @Accept	json
 // @Produce json
-// @Param 	id		path	int			true	"Book ID"	Format(uint32)
-// @Param	book	body	models.Book	true	"Book Data"
-// @Success 204 {object} models.Book "OK"
+// @Param 	id		path	int					true	"Book ID"	Format(uint32)
+// @Param	book	body	dto.BookUpdateIn	true	"Book Data"
+// @Success 200 {object} models.Book "OK"
 // @Success 404 {object} dto.ApiError "err.not_found"
-// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"	// TODO learn to make validation of params and body, make the response 400 (bad request)
+// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books/{id} [put]
 func (h HBook) updateBook(ctx iris.Context) {
-	var book models.Book
+	var bDto dto.BookUpdateIn
 
 	// Getting the data
-	book.Id = ctx.Params().GetUintDefault("id", 0)
-	if e := ctx.ReadJSON(&book); e != nil {
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrGeneric, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+	bDto.Id = ctx.Params().GetUintDefault("id", 0)
+	if e := ctx.ReadJSON(&bDto); e != nil {
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrVal, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+		return
 	}
 
+	// Mapping
+	book := mapper.ToBookUpdateV(&bDto)
+
 	// Updating
-	updated, err := (*h.service).UpdateBook(&book)
+	updated, err := (*h.service).UpdateBook(book)
 
 	if err != nil && err.Error() == data.ErrNotFound {													// 404 Wrong ID
 		(*h.response).RespErr(iris.StatusNotFound, data.ErrNotFound, data.ErrDetNotFound, &ctx)
@@ -197,8 +206,8 @@ func (h HBook) updateBook(ctx iris.Context) {
 		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, data.ErrDetDuplicateKey, &ctx)
 	} else if err != nil {																				// Something happen
 		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
-	} else if updated > 0 {																				// All good, book was updated
-		(*h.response).RespOK(&ctx)
+	} else if updated > 0 {																				// All good, bDto was updated
+		(*h.response).RespOKWithData(iris.StatusOK, book, &ctx)
 	}
 }
 

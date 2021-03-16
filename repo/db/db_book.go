@@ -89,7 +89,7 @@ func (r *dbBooks) Update(ent *models.Book) (uint, error) {
 	} else {				// All good
 
 		if res != nil && res.RowsAffected() > 0 {		// Find & updated
-			return  1, nil
+			return  1, nil								// TIP maybe you want to use FIND to return the complete entity here
 		} else {
 			return 0, errors.New(data.ErrNotFound)		// 404
 		}

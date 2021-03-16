@@ -1,1 +1,1 @@
-> "Vertical" services that provides aux / utilities functionalities
+> "Vertical" services that provides aux / utilities functionalities.
