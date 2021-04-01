@@ -54,7 +54,7 @@ func main() {
 
 	pgdb := database.Bootstrap(svc_c)  					// Starting the database and creating the engine
 	// database.CreateSchema(pgdb, false) 				// Table creation method
-	database.MkMigrations(svc_c)
+	// database.MkMigrations(svc_c)						// Making migrations
 	// endregion =============================================================================
 
 	// region ======== ENDPOINT REGISTRATIONS ================================================
