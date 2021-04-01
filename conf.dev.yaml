@@ -1,0 +1,13 @@
+# DATABASE INFO
+Addr: "localhost:5432"
+Host: "localhost"
+Port: 5432
+User: "postgres"
+Pass: "axM05.dyo"
+Database: "adbo"
+
+# MIGRATIONS
+MigrationDir: "D:\\Source\\Go\\src\\go.api.backend\\schema\\database\\migrations"
+
+# ENVIRONMENT
+Debug: true

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"go.api.backend/data/models"
+	"go.api.backend/schema/models"
 	"go.api.backend/repo/db"
 )
 

@@ -3,8 +3,8 @@ package db
 import (
 	"errors"
 	"github.com/go-pg/pg/v10"
-	"go.api.backend/data"
-	"go.api.backend/data/models"
+	"go.api.backend/schema"
+	"go.api.backend/schema/models"
 	"time"
 )
 
@@ -63,7 +63,7 @@ func (r *dbBooks) Add(ent *models.Book) error {
 
 	isExist, e1 := r.Pgdb.Model(ent).Where("name = ?", ent.Name).Exists()
 	if isExist && e1 == nil {
-		return errors.New(data.ErrDuplicateKey)
+		return errors.New(schema.ErrDuplicateKey)
 	} else if e1 != nil {
 		return e1								// Something happen
 	} else {
@@ -72,7 +72,7 @@ func (r *dbBooks) Add(ent *models.Book) error {
 	}
 }
 
-// Update update a book with the giving data
+// Update update a book with the giving schema
 func (r *dbBooks) Update(ent *models.Book) (uint, error) {
 
 	ent.UpdatedAt = time.Now()
@@ -80,8 +80,8 @@ func (r *dbBooks) Update(ent *models.Book) (uint, error) {
 
 	if err != nil {			// Something Occurs
 
-		if err.Error()[7:12] == data.StrPgDuplicateKey {
-			return 0, errors.New(data.ErrDuplicateKey)		// Duplicated unique key field (name in this case)
+		if err.Error()[7:12] == schema.StrPgDuplicateKey {
+			return 0, errors.New(schema.ErrDuplicateKey) // Duplicated unique key field (name in this case)
 		}
 
 		return 0, err
@@ -91,7 +91,7 @@ func (r *dbBooks) Update(ent *models.Book) (uint, error) {
 		if res != nil && res.RowsAffected() > 0 {		// Find & updated
 			return  1, nil								// TIP maybe you want to use FIND to return the complete entity here
 		} else {
-			return 0, errors.New(data.ErrNotFound)		// 404
+			return 0, errors.New(schema.ErrNotFound) 	// 404
 		}
 
 	}

@@ -14,5 +14,5 @@ type Book struct {
 }
 
 // TIP An model / entity can be an object with methods.
-// The entities / models could be used by many different applications in the enterprise.
-// This hst to encapsulate Enterprise wide business rules. Eg. Entity field transformation
+// The models / entities could be used by many different applications in the enterprise.
+// This has to encapsulate Enterprise wide business rules. Eg. Entity field transformation

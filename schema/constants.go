@@ -1,4 +1,4 @@
-package data
+package schema
 
 // region ======== i18n ERROR KEYS =======================================================
 const (

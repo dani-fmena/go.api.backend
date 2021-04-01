@@ -20,6 +20,9 @@ definitions:
       name:
         example: The Book of Eli
         type: string
+    required:
+    - items
+    - name
     type: object
   dto.BookUpdateIn:
     properties:
@@ -32,6 +35,9 @@ definitions:
       name:
         example: The Book of Eli
         type: string
+    required:
+    - items
+    - name
     type: object
   models.Book:
     properties:
@@ -83,7 +89,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Create a new book from the passed data
+      description: Create a new book from the passed schema
       parameters:
       - description: Book Data
         in: body
@@ -99,8 +105,7 @@ paths:
           schema:
             $ref: '#/definitions/models.Book'
         "422":
-          description: "err.duplicate_key || Invalid data\"\t// TODO learn to make
-            validation of params and body, make the response 400 (bad request)"
+          description: err.duplicate_key || Invalid schema
           schema:
             $ref: '#/definitions/dto.ApiError'
         "500":
@@ -170,7 +175,7 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update the book having the specified Id with the data passed in
+      description: Update the book having the specified Id with the schema passed in
         the request body
       parameters:
       - description: Book ID
@@ -197,8 +202,7 @@ paths:
           schema:
             $ref: '#/definitions/dto.ApiError'
         "422":
-          description: "err.duplicate_key || Invalid data\"\t// TODO learn to make
-            validation of params and body, make the response 400 (bad request)"
+          description: err.duplicate_key || Invalid schema
           schema:
             $ref: '#/definitions/dto.ApiError'
         "500":

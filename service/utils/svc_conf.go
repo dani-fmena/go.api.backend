@@ -4,14 +4,19 @@ import "github.com/tkanos/gonfig"
 
 // region ======== TYPES =================================================================
 
-// conf unexported configuration data holder struct
+// conf unexported configuration schema holder struct
 type conf struct {
 
 	// Database configuration
+	Addr	 string
 	Host     string
+	Port     string
 	User     string
 	Pass     string
 	Database string
+
+	// Migrations directory
+	MigrationDir string
 
 	// Environment
 	Debug bool

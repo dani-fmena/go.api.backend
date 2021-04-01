@@ -1,8 +1,0 @@
-# DATABASE INFO
-Host: "localhost:5432"
-User: "postgres"
-Pass: "axM05.dyo"
-Database: "adbo"
-
-# ENVIRONMENT
-Debug: true

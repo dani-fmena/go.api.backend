@@ -1,8 +1,8 @@
 package mapper
 
 import (
-	"go.api.backend/data/dto"
-	"go.api.backend/data/models"
+	"go.api.backend/schema/dto"
+	"go.api.backend/schema/models"
 )
 
 // TIP ref https://hellokoding.com/crud-restful-apis-with-go-modules-wire-gin-gorm-and-mysql/

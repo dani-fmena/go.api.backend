@@ -3,13 +3,13 @@ package endpoints
 import (
 	"github.com/go-pg/pg/v10"
 	"github.com/kataras/iris/v12"
-	"go.api.backend/data/dto"
-	"go.api.backend/data/mapper"
+	"go.api.backend/schema/dto"
+	"go.api.backend/schema/mapper"
 	"go.api.backend/service/utils"
 	"time"
 
-	"go.api.backend/data"
 	"go.api.backend/repo/db"
+	"go.api.backend/schema"
 	"go.api.backend/service"
 )
 
@@ -73,7 +73,7 @@ func (h HBook) getBooks(ctx iris.Context) {
 
 	// Preparing the response
 	if err != nil {
-		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
 	} else {
 		(*h.response).RespOKWithData(iris.StatusOK, books, &ctx)
 	}
@@ -97,10 +97,10 @@ func(h HBook) getBookById(ctx iris.Context) {
 	// Preparing the response
 	if book.CreatedAt != *new(time.Time) && err == nil {											// 200 Founded
 		(*h.response).RespOKWithData(iris.StatusOK, book, &ctx)
-	} else if err != nil && err.Error()[4:11] == data.StrDB404 {									// 404 from repo
-		(*h.response).RespErr(iris.StatusNotFound, data.ErrNotFound, data.ErrDetNotFound, &ctx)
+	} else if err != nil && err.Error()[4:11] == schema.StrDB404 { // 404 from repo
+		(*h.response).RespErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx)
 	} else if err != nil {
-		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrGeneric, err.Error(), &ctx) // returning some other error may happen
+		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrGeneric, err.Error(), &ctx) // returning some other error may happen
 	}
 
 	// Regarding the "Nilnes" IDE warning, I think the book will not be null. Se the called service method.
@@ -123,47 +123,48 @@ func (h HBook) delBookByID(ctx iris.Context) {
 
 	// Preparing the response
 	if err == nil && deleted == 0 {
-		(*h.response).RespErr(iris.StatusNotFound, data.ErrNotFound, data.ErrDetNotFound, &ctx) // 404 from repo
+		(*h.response).RespErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx) // 404 from repo
 	} else if err == nil && deleted > 0 {
-		(*h.response).RespDelete(&ctx) // 204 & empty data
+		(*h.response).RespDelete(&ctx) // 204 & empty schema
 	} else if err != nil {
-		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx) // returning some other error may happen
+		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx) // returning some other error may happen
 	}
 }
 
 // createBook create a new book
 // @Summary Create a new book
-// @Description Create a new book from the passed data
+// @Description Create a new book from the passed schema
 // @Tags Books
 // @Accept	json
 // @Produce json
 // @Param	book	body	dto.BookCreateIn	true	"Book Data"
 // @Success 201 {object} models.Book "OK"
-// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"
+// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid schema"
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books [post]
 func (h HBook) createBook(ctx iris.Context) {
 	var bDto dto.BookCreateIn
 
-	// TIP: use ctx.ReadBody(&bDto) to bind any type of incoming data instead. E.g it comes in handy when the client request are using form-data
+	// TIP: use ctx.ReadBody(&bDto) to bind any type of incoming schema instead. E.g it comes in handy when the client request are using form-schema
 	if e := ctx.ReadJSON(&bDto); e != nil {
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrVal, e.Error(), &ctx) // 422 ReadJSON do the validation here
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrVal, e.Error(), &ctx) // 422 ReadJSON do the validation here
 		return
 	}
 
-	// TIP ❗ this is just a sample to show the mapper use. I think the ReadJSON method do this trick when unmarshal the data.
-	// So, the mapper use maybe has more sense using it for the data responses for hiding fields to the client.
+	// TIP ❗ this is just a sample to show the mapper use. I think the ReadJSON method do this trick when unmarshal the schema.
+	// So, the mapper use maybe has more sense using it for the schema responses for hiding fields to the client.
 	// Another mapper utility is fot use in combination of specifically defined strut for validation purpose
+
 	// Mapping
 	book := mapper.ToBookCreateV(&bDto)
 
 	err := (*h.service).Create(book)
 	if err != nil {
 
-		if err.Error() == data.ErrDuplicateKey { 															// 422 Unprocessable 'cause duplicate key
-			(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, data.ErrDetDuplicateKey, &ctx)
+		if err.Error() == schema.ErrDuplicateKey { // 422 Unprocessable 'cause duplicate key
+			(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrDuplicateKey, schema.ErrDetDuplicateKey, &ctx)
 		} else {																							// 500
-			(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+			(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
 		}
 
 	} else {		// All good
@@ -171,9 +172,9 @@ func (h HBook) createBook(ctx iris.Context) {
 	}
 }
 
-// updateBook update the book having the Id passed as path parameter, with the data passed in the request body
+// updateBook update the book having the Id passed as path parameter, with the schema passed in the request body
 // @Summary Update the indicated book
-// @Description Update the book having the specified Id with the data passed in the request body
+// @Description Update the book having the specified Id with the schema passed in the request body
 // @Tags Books
 // @Accept	json
 // @Produce json
@@ -181,16 +182,16 @@ func (h HBook) createBook(ctx iris.Context) {
 // @Param	book	body	dto.BookUpdateIn	true	"Book Data"
 // @Success 200 {object} models.Book "OK"
 // @Success 404 {object} dto.ApiError "err.not_found"
-// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid data"
+// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid schema"
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books/{id} [put]
 func (h HBook) updateBook(ctx iris.Context) {
 	var bDto dto.BookUpdateIn
 
-	// Getting the data
+	// Getting the schema
 	bDto.Id = ctx.Params().GetUintDefault("id", 0)
 	if e := ctx.ReadJSON(&bDto); e != nil {
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrVal, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrVal, e.Error(), &ctx) // 422 errors may happen in the marshaling process
 		return
 	}
 
@@ -200,12 +201,12 @@ func (h HBook) updateBook(ctx iris.Context) {
 	// Updating
 	updated, err := (*h.service).UpdateBook(book)
 
-	if err != nil && err.Error() == data.ErrNotFound {													// 404 Wrong ID
-		(*h.response).RespErr(iris.StatusNotFound, data.ErrNotFound, data.ErrDetNotFound, &ctx)
-	} else if err != nil && err.Error() == data.ErrDuplicateKey {										// Same unique field, name in this case
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, data.ErrDuplicateKey, data.ErrDetDuplicateKey, &ctx)
+	if err != nil && err.Error() == schema.ErrNotFound { // 404 Wrong ID
+		(*h.response).RespErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx)
+	} else if err != nil && err.Error() == schema.ErrDuplicateKey { // Same unique field, name in this case
+		(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrDuplicateKey, schema.ErrDetDuplicateKey, &ctx)
 	} else if err != nil {																				// Something happen
-		(*h.response).RespErr(iris.StatusInternalServerError, data.ErrRepositoryOps, err.Error(), &ctx)
+		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
 	} else if updated > 0 {																				// All good, bDto was updated
 		(*h.response).RespOKWithData(iris.StatusOK, book, &ctx)
 	}

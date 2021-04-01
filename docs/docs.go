@@ -57,7 +57,7 @@ var doc = `{
                 }
             },
             "post": {
-                "description": "Create a new book from the passed data",
+                "description": "Create a new book from the passed schema",
                 "consumes": [
                     "application/json"
                 ],
@@ -87,7 +87,7 @@ var doc = `{
                         }
                     },
                     "422": {
-                        "description": "err.duplicate_key || Invalid data\"\t// TODO learn to make validation of params and body, make the response 400 (bad request)",
+                        "description": "err.duplicate_key || Invalid schema",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -146,7 +146,7 @@ var doc = `{
                 }
             },
             "put": {
-                "description": "Update the book having the specified Id with the data passed in the request body",
+                "description": "Update the book having the specified Id with the schema passed in the request body",
                 "consumes": [
                     "application/json"
                 ],
@@ -190,7 +190,7 @@ var doc = `{
                         }
                     },
                     "422": {
-                        "description": "err.duplicate_key || Invalid data\"\t// TODO learn to make validation of params and body, make the response 400 (bad request)",
+                        "description": "err.duplicate_key || Invalid schema",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -265,6 +265,10 @@ var doc = `{
         },
         "dto.BookCreateIn": {
             "type": "object",
+            "required": [
+                "items",
+                "name"
+            ],
             "properties": {
                 "items": {
                     "type": "integer",
@@ -278,6 +282,10 @@ var doc = `{
         },
         "dto.BookUpdateIn": {
             "type": "object",
+            "required": [
+                "items",
+                "name"
+            ],
             "properties": {
                 "id": {
                     "type": "integer",

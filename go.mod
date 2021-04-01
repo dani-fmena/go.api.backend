@@ -8,10 +8,10 @@ require (
 	github.com/go-openapi/spec v0.20.3 // indirect
 	github.com/go-pg/pg/v10 v10.8.0
 	github.com/go-playground/validator/v10 v10.4.1
-	github.com/go-xorm/xorm v0.7.9
 	github.com/iris-contrib/swagger/v12 v12.2.0-alpha
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210304161013-7272c76847eb
 	github.com/lib/pq v1.10.0
+	github.com/rubenv/sql-migrate v0.0.0-20210215143335-f84234893558
 	github.com/swaggo/swag v1.7.0
 	github.com/tkanos/gonfig v0.0.0-20210106201359-53e13348de2f
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect

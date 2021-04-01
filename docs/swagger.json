@@ -72,7 +72,7 @@
                         }
                     },
                     "422": {
-                        "description": "err.duplicate_key || Invalid data\"\t// TODO learn to make validation of params and body, make the response 400 (bad request)",
+                        "description": "err.duplicate_key || Invalid data",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -175,7 +175,7 @@
                         }
                     },
                     "422": {
-                        "description": "err.duplicate_key || Invalid data\"\t// TODO learn to make validation of params and body, make the response 400 (bad request)",
+                        "description": "err.duplicate_key || Invalid data",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -250,6 +250,10 @@
         },
         "dto.BookCreateIn": {
             "type": "object",
+            "required": [
+                "items",
+                "name"
+            ],
             "properties": {
                 "items": {
                     "type": "integer",
@@ -263,6 +267,10 @@
         },
         "dto.BookUpdateIn": {
             "type": "object",
+            "required": [
+                "items",
+                "name"
+            ],
             "properties": {
                 "id": {
                     "type": "integer",

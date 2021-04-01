@@ -4,7 +4,7 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
-	"go.api.backend/data/database"
+	"go.api.backend/schema/database"
 	"go.api.backend/service/utils"
 
 	"github.com/iris-contrib/swagger/v12"              // swagger middleware for Iris
@@ -37,8 +37,8 @@ func main() {
 	app.Validator = v		// Register validation on the iris app
 
 	// Services
-	c := utils.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\dev.yaml") 				// Configuration Service
-	r := utils.NewSvcResponse(c)																// Response Service
+	svc_c := utils.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\conf.dev.yaml") 		// Configuration Service
+	svc_r := utils.NewSvcResponse(svc_c)                                         				// Response Service
 	// endregion =============================================================================
 
 	// region ======== MIDDLEWARES ===========================================================
@@ -52,13 +52,14 @@ func main() {
 
 	// region ======== DATABASE BOOTSTRAPPING ================================================
 
-	pgdb := database.Bootstrap(c) 							// Starting the database and creating the engine
-	database.CreateSchema(pgdb, false)				// Table creation method
+	pgdb := database.Bootstrap(svc_c)  					// Starting the database and creating the engine
+	// database.CreateSchema(pgdb, false) 				// Table creation method
+	database.MkMigrations(svc_c)
 	// endregion =============================================================================
 
 	// region ======== ENDPOINT REGISTRATIONS ================================================
 
-	endpoints.NewBookHandler(app, pgdb, r)
+	endpoints.NewBookHandler(app, pgdb, svc_r)
 	// endregion =============================================================================
 
 	// region ======== SWAGGER REGISTRATION ==================================================
