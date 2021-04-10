@@ -50,7 +50,7 @@ func NewBookHandler(app *iris.Application, dbCtx *pg.DB, r *utils.SvcResponse) H
 		booksRouter.Get("/{id:uint64}", h.getBookById)
 		booksRouter.Post("/", h.createBook)
 		booksRouter.Put("/{id:uint64}", h.updateBook)				// PUT vs PATCH https://stackoverflow.com/a/34400076/4196056
-		booksRouter.Delete("/{id:uint64}", h.delBookByID)
+		booksRouter.Delete("/{id:uint64}", h.delBookById)
 		// booksRouter.Get("/", hero.Handler(getBooks))					// sample with dependency injection
 		// booksRouter.Post("/", createBooks)							// when no dependencies injection (but context) is needed
 	}
@@ -87,11 +87,11 @@ func (h HBook) getBooks(ctx iris.Context) {
 // @Produce json
 // @Param	id	path	int	true	"Requested Book Id"	Format(uint32)
 // @Success 200 {object} models.Book "OK"
-// @Success 404 {object} dto.ApiError "err.not_found"
+// @Failure 404 {object} dto.ApiError "err.not_found"
 // @Failure 500 {object} dto.ApiError "Internal error"
 // @Router /books/{id} [get]
 func(h HBook) getBookById(ctx iris.Context) {
-	bookId := ctx.Params().GetUintDefault("id", 0)
+	bookId := ctx.Params().GetUintDefault("id", 1)
 	book, err := (*h.service).GetByID(&bookId)
 
 	// Preparing the response
@@ -106,7 +106,7 @@ func(h HBook) getBookById(ctx iris.Context) {
 	// Regarding the "Nilnes" IDE warning, I think the book will not be null. Se the called service method.
 }
 
-// delBookByID deletes a Book by Id or 404 if doesn't exist
+// delBookById deletes a Book by Id or 404 if doesn't exist
 // @Summary Delete a Book
 // @Description Deletes a Book by its Id
 // @Tags Books
@@ -114,10 +114,10 @@ func(h HBook) getBookById(ctx iris.Context) {
 // @Produce  json
 // @Param 	id	path	int true	"Book ID"	Format(uint32)
 // @Success 204 "No Content"
-// @Success 404 {object} dto.ApiError "err.not_found"
+// @Failure 404 {object} dto.ApiError "err.not_found"
 // @Failure 500 {object} dto.ApiError "err.repo_ops"
 // @Router /books/{id} [delete]
-func (h HBook) delBookByID(ctx iris.Context) {
+func (h HBook) delBookById(ctx iris.Context) {
 	bookId := ctx.Params().GetUintDefault("id", 0)
 	deleted, err := (*h.service).DelByID(&bookId)
 
@@ -139,7 +139,7 @@ func (h HBook) delBookByID(ctx iris.Context) {
 // @Produce json
 // @Param	book	body	dto.BookCreateIn	true	"Book Data"
 // @Success 201 {object} models.Book "OK"
-// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid schema"
+// @Failure 422 {object} dto.ApiError "err.duplicate_key || Invalid schema"
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books [post]
 func (h HBook) createBook(ctx iris.Context) {
@@ -151,10 +151,7 @@ func (h HBook) createBook(ctx iris.Context) {
 		return
 	}
 
-	// TIP ❗ this is just a sample to show the mapper use. I think the ReadJSON method do this trick when unmarshal the schema.
-	// So, the mapper use maybe has more sense using it for the schema responses for hiding fields to the client.
-	// Another mapper utility is fot use in combination of specifically defined strut for validation purpose
-
+	// TIP ❗ this is just a sample to show the mapper use.
 	// Mapping
 	book := mapper.ToBookCreateV(&bDto)
 
@@ -181,8 +178,8 @@ func (h HBook) createBook(ctx iris.Context) {
 // @Param 	id		path	int					true	"Book ID"	Format(uint32)
 // @Param	book	body	dto.BookUpdateIn	true	"Book Data"
 // @Success 200 {object} models.Book "OK"
-// @Success 404 {object} dto.ApiError "err.not_found"
-// @Success 422 {object} dto.ApiError "err.duplicate_key || Invalid schema"
+// @Failure 404 {object} dto.ApiError "err.not_found"
+// @Failure 422 {object} dto.ApiError "err.duplicate_key || Invalid schema"
 // @Failure 500 {object} dto.ApiError "err.repo_ops || Internal error"
 // @Router /books/{id} [put]
 func (h HBook) updateBook(ctx iris.Context) {
@@ -212,4 +209,7 @@ func (h HBook) updateBook(ctx iris.Context) {
 	}
 }
 
+// endregion =============================================================================
+
+// region ======== LOCAL DEPENDENCIES ====================================================
 // endregion =============================================================================

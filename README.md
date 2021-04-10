@@ -17,7 +17,7 @@ Intent to be a re-usable shell for GO + Iris backends apis projects
 -   ...
 
 ### ⌚ Pending
--   Api versioning
+-   Api versioning (https://github.com/iris-contrib/examples/blob/master/routing/versioning/main.go)
 -   Log operations to a file
 -   Authentication & Authorization, plus Session Expiration
 -   Redis Cache

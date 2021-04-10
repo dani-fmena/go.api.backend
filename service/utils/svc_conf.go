@@ -8,11 +8,11 @@ import "github.com/tkanos/gonfig"
 type conf struct {
 
 	// Database configuration
-	Addr	 string
+	Addr     string
 	Host     string
 	Port     string
 	User     string
-	Pass     string
+	DbPass   string
 	Database string
 
 	// Migrations directory
@@ -20,9 +20,14 @@ type conf struct {
 
 	// Environment
 	Debug bool
+
+	// SISEC Auth Provider
+	SisecUrl        string
+	SisecClientId   string
+	SisecClientPass string
 }
 
-// SvcConfig unexported configuration service struct
+// SvcConfig exported configuration service struct
 type SvcConfig struct {
 	Path string `string:"Path to the config YAML file"`
 	conf `conf:"Configuration object"`
@@ -35,10 +40,10 @@ type SvcConfig struct {
 func NewSvcConfig(path string) *SvcConfig {
 	c := conf{}
 
-	err := gonfig.GetConf(path, &c) 			// getting the conf
+	err := gonfig.GetConf(path, &c) 				// getting the conf
 	if err != nil {                 // error check
 		panic(err)
 	}
 
-	return &SvcConfig{path, c} // We are using struct composition here. Hence the anonymous field (https://golangbot.com/inheritance/)
+	return &SvcConfig{path, c} 			// We are using struct composition here. Hence the anonymous field (https://golangbot.com/inheritance/)
 }

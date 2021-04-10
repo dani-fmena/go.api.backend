@@ -11,7 +11,7 @@ type SvcResponse struct {
 
 // NewSvcResponse create a response service instance. Depends on the app configuration instance
 //
-// appConf [*SvcConfig] ~ App conf instance pointer
+// - appConf [*SvcConfig] ~ App conf instance pointer
 func NewSvcResponse(appConf *SvcConfig) *SvcResponse {
 	return &SvcResponse{appConf: appConf}
 }
@@ -30,8 +30,7 @@ func (s SvcResponse) RespOKWithData(status int, data interface{}, ctx *iris.Cont
 	// and client's requirements, instead of ctx.JSON:
 	// ctx.Negotiation().JSON().MsgPack().Protobuf()
 	// ctx.Negotiate(books)
-	if _, err := (*ctx).JSON(data);
-		err != nil {																									// Logging *marshal* json if error occurs (come internally from iris)
+	if _, err := (*ctx).JSON(data); err != nil {																									// Logging *marshal* json if error occurs (come internally from iris)
 		(*ctx).Application().Logger().Error(err.Error())
 	}
 	(*ctx).StatusCode(status)

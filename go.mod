@@ -9,6 +9,7 @@ require (
 	github.com/go-pg/pg/v10 v10.8.0
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/iris-contrib/swagger/v12 v12.2.0-alpha
+	github.com/json-iterator/go v1.1.10
 	github.com/kataras/iris/v12 v12.2.0-alpha2.0.20210304161013-7272c76847eb
 	github.com/lib/pq v1.10.0
 	github.com/rubenv/sql-migrate v0.0.0-20210215143335-f84234893558

@@ -3,7 +3,7 @@ Addr: "localhost:5432"
 Host: "localhost"
 Port: 5432
 User: "postgres"
-Pass: "axM05.dyo"
+DbPass: "axM05.dyo"
 Database: "adbo"
 
 # MIGRATIONS
@@ -11,3 +11,8 @@ MigrationDir: "D:\\Source\\Go\\src\\go.api.backend\\schema\\database\\migrations
 
 # ENVIRONMENT
 Debug: true
+
+# SISEC Auth Provider
+SisecUrl: "https://60715c1950aaea0017284861.mockapi.io/siseclogindata/1"
+SisecClientId: "fake_id"                                                      # CLIENT_ID
+SisecClientPass: "fake_pass"                                                  # CLIENT_ID_PASSWORD

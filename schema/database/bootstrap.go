@@ -16,7 +16,7 @@ import (
 func Bootstrap(c *utils.SvcConfig) *pg.DB {
 
 	// Creating the database connection and getting the context
-	pgdb := pg.Connect(&pg.Options{Addr: c.Addr, User: c.User, Password: c.Pass, Database: c.Database})
+	pgdb := pg.Connect(&pg.Options{Addr: c.Addr, User: c.User, Password: c.DbPass, Database: c.Database})
 	ctx := context.Background()
 
 	// Check
@@ -58,7 +58,7 @@ func MkMigrations(c *utils.SvcConfig) {
 
 	// Making db connection. ❗ Notice that we use database/sql because migration packages use it.
 	// So we can't use go-pg connection instance for talk with the database
-	pgCnxInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", c.Host, c.Port, c.User, c.Pass, c.Database)
+	pgCnxInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", c.Host, c.Port, c.User, c.DbPass, c.Database)
 
 	pgdb, e := sql.Open("postgres", pgCnxInfo)
 	if e != nil { panic(e) }

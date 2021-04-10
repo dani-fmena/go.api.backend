@@ -37,8 +37,8 @@ func main() {
 	app.Validator = v		// Register validation on the iris app
 
 	// Services
-	svc_c := utils.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\conf.dev.yaml") 		// Configuration Service
-	svc_r := utils.NewSvcResponse(svc_c)                                         				// Response Service
+	svcC := utils.NewSvcConfig("D:\\Source\\Go\\src\\go.api.backend\\conf.dev.yaml") 			// Creating Configuration Service
+	svcR := utils.NewSvcResponse(svcC)                                               				// Creating Response Service
 	// endregion =============================================================================
 
 	// region ======== MIDDLEWARES ===========================================================
@@ -52,14 +52,15 @@ func main() {
 
 	// region ======== DATABASE BOOTSTRAPPING ================================================
 
-	pgdb := database.Bootstrap(svc_c)  					// Starting the database and creating the engine
+	pgdb := database.Bootstrap(svcC) // Starting the database and creating the engine
 	// database.CreateSchema(pgdb, false) 				// Table creation method
-	// database.MkMigrations(svc_c)						// Making migrations
+	// database.MkMigrations(svcC)						// Making migrations
 	// endregion =============================================================================
 
 	// region ======== ENDPOINT REGISTRATIONS ================================================
 
-	endpoints.NewBookHandler(app, pgdb, svc_r)
+	endpoints.NewBookHandler(app, pgdb, svcR)
+	endpoints.NewAuthHandler(app, svcR, svcC)
 	// endregion =============================================================================
 
 	// region ======== SWAGGER REGISTRATION ==================================================
@@ -77,5 +78,5 @@ func main() {
 	// endregion =============================================================================
 
 	app.Run(iris.Addr(":8080"))
-	//  app.Listen(":5000", iris.WithOptimizations)
+	//  app.Listen(":5000", iris.WithOptimizations) see https://github.com/kataras/iris/issues/1739, check if it related to the context.go 2307 line
 }

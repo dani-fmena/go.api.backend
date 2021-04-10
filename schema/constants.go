@@ -6,6 +6,9 @@ const (
 	ErrRepositoryOps = "err.repo_ops"
 	ErrNotFound = "err.not_found"
 	ErrDuplicateKey = "err.duplicate_key"
+	ErrNetwork = "err.network"
+	ErrJsonParse = "err.json_parse"
+	ErrUnauthorized = "err.unauthorized"
 	ErrVal = "err.invalid_data"
 )
 // endregion =============================================================================

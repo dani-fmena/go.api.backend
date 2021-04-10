@@ -39,6 +39,22 @@ definitions:
     - items
     - name
     type: object
+  dto.UserCredIn:
+    properties:
+      password:
+        example: secret
+        type: string
+      scope:
+        example: web
+        type: string
+      username:
+        example: mynickname
+        type: string
+    required:
+    - password
+    - scope
+    - username
+    type: object
   models.Book:
     properties:
       createdAt:
@@ -67,6 +83,31 @@ info:
   title: Shell Project
   version: "0.0"
 paths:
+  /auth/sisec:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Try to make the authentication of the user credentials through
+        the SISEC auth provider service
+      parameters:
+      - description: User Login Credential
+        in: body
+        name: credential
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserCredIn'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+        "401":
+          description: err.unauthorized
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+      summary: Auth the user credential through SISEC
+      tags:
+      - Auth
   /books:
     get:
       description: Get the books in the repository
@@ -175,8 +216,8 @@ paths:
     put:
       consumes:
       - application/json
-      description: Update the book having the specified Id with the schema passed in
-        the request body
+      description: Update the book having the specified Id with the schema passed
+        in the request body
       parameters:
       - description: Book ID
         format: uint32

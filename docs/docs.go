@@ -28,6 +28,43 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/sisec": {
+            "post": {
+                "description": "Try to make the authentication of the user credentials through the SISEC auth provider service",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Auth the user credential through SISEC",
+                "parameters": [
+                    {
+                        "description": "User Login Credential",
+                        "name": "credential",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserCredIn"
+                        }
+                    }
+                ],
+                "responses": {
+                    "202": {
+                        "description": "Accepted"
+                    },
+                    "401": {
+                        "description": "err.unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    }
+                }
+            }
+        },
         "/books": {
             "get": {
                 "description": "Get the books in the repository",
@@ -298,6 +335,28 @@ var doc = `{
                 "name": {
                     "type": "string",
                     "example": "The Book of Eli"
+                }
+            }
+        },
+        "dto.UserCredIn": {
+            "type": "object",
+            "required": [
+                "password",
+                "scope",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "secret"
+                },
+                "scope": {
+                    "type": "string",
+                    "example": "web"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "mynickname"
                 }
             }
         },
