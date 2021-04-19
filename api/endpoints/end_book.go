@@ -3,14 +3,13 @@ package endpoints
 import (
 	"github.com/go-pg/pg/v10"
 	"github.com/kataras/iris/v12"
-	"go.api.backend/schema/dto"
-	"go.api.backend/schema/mapper"
-	"go.api.backend/service/utils"
-	"time"
-
 	"go.api.backend/repo/db"
 	"go.api.backend/schema"
+	"go.api.backend/schema/dto"
+	"go.api.backend/schema/mapper"
 	"go.api.backend/service"
+	"go.api.backend/service/utils"
+	"time"
 )
 
 type HBook struct {
@@ -73,9 +72,9 @@ func (h HBook) getBooks(ctx iris.Context) {
 
 	// Preparing the response
 	if err != nil {
-		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
+		(*h.response).ResErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
 	} else {
-		(*h.response).RespOKWithData(iris.StatusOK, books, &ctx)
+		(*h.response).ResWithDataStatus(iris.StatusOK, books, &ctx)
 	}
 }
 
@@ -91,16 +90,17 @@ func (h HBook) getBooks(ctx iris.Context) {
 // @Failure 500 {object} dto.ApiError "Internal error"
 // @Router /books/{id} [get]
 func(h HBook) getBookById(ctx iris.Context) {
+
 	bookId := ctx.Params().GetUintDefault("id", 1)
 	book, err := (*h.service).GetByID(&bookId)
 
 	// Preparing the response
 	if book.CreatedAt != *new(time.Time) && err == nil {											// 200 Founded
-		(*h.response).RespOKWithData(iris.StatusOK, book, &ctx)
+		(*h.response).ResWithDataStatus(iris.StatusOK, book, &ctx)
 	} else if err != nil && err.Error()[4:11] == schema.StrDB404 { // 404 from repo
-		(*h.response).RespErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx)
+		(*h.response).ResErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx)
 	} else if err != nil {
-		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrGeneric, err.Error(), &ctx) // returning some other error may happen
+		(*h.response).ResErr(iris.StatusInternalServerError, schema.ErrGeneric, err.Error(), &ctx) // returning some other error may happen
 	}
 
 	// Regarding the "Nilnes" IDE warning, I think the book will not be null. Se the called service method.
@@ -123,11 +123,11 @@ func (h HBook) delBookById(ctx iris.Context) {
 
 	// Preparing the response
 	if err == nil && deleted == 0 {
-		(*h.response).RespErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx) // 404 from repo
+		(*h.response).ResErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx) // 404 from repo
 	} else if err == nil && deleted > 0 {
-		(*h.response).RespDelete(&ctx) // 204 & empty schema
+		(*h.response).ResDelete(&ctx) // 204 & empty schema
 	} else if err != nil {
-		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx) // returning some other error may happen
+		(*h.response).ResErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx) // returning some other error may happen
 	}
 }
 
@@ -147,7 +147,7 @@ func (h HBook) createBook(ctx iris.Context) {
 
 	// TIP: use ctx.ReadBody(&bDto) to bind any type of incoming schema instead. E.g it comes in handy when the client request are using form-schema
 	if e := ctx.ReadJSON(&bDto); e != nil {
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrVal, e.Error(), &ctx) // 422 ReadJSON do the validation here
+		(*h.response).ResErr(iris.StatusUnprocessableEntity, schema.ErrVal, e.Error(), &ctx) // 422 ReadJSON do the validation here
 		return
 	}
 
@@ -159,13 +159,13 @@ func (h HBook) createBook(ctx iris.Context) {
 	if err != nil {
 
 		if err.Error() == schema.ErrDuplicateKey { // 422 Unprocessable 'cause duplicate key
-			(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrDuplicateKey, schema.ErrDetDuplicateKey, &ctx)
+			(*h.response).ResErr(iris.StatusUnprocessableEntity, schema.ErrDuplicateKey, schema.ErrDetDuplicateKey, &ctx)
 		} else {																							// 500
-			(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
+			(*h.response).ResErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
 		}
 
 	} else {		// All good
-		(*h.response).RespOKWithData(iris.StatusCreated, book, &ctx)
+		(*h.response).ResWithDataStatus(iris.StatusCreated, book, &ctx)
 	}
 }
 
@@ -188,7 +188,7 @@ func (h HBook) updateBook(ctx iris.Context) {
 	// Getting the schema
 	bDto.Id = ctx.Params().GetUintDefault("id", 0)
 	if e := ctx.ReadJSON(&bDto); e != nil {
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrVal, e.Error(), &ctx) // 422 errors may happen in the marshaling process
+		(*h.response).ResErr(iris.StatusUnprocessableEntity, schema.ErrVal, e.Error(), &ctx) // 422 errors may happen in the marshaling process
 		return
 	}
 
@@ -199,13 +199,13 @@ func (h HBook) updateBook(ctx iris.Context) {
 	updated, err := (*h.service).UpdateBook(book)
 
 	if err != nil && err.Error() == schema.ErrNotFound { // 404 Wrong ID
-		(*h.response).RespErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx)
+		(*h.response).ResErr(iris.StatusNotFound, schema.ErrNotFound, schema.ErrDetNotFound, &ctx)
 	} else if err != nil && err.Error() == schema.ErrDuplicateKey { // Same unique field, name in this case
-		(*h.response).RespErr(iris.StatusUnprocessableEntity, schema.ErrDuplicateKey, schema.ErrDetDuplicateKey, &ctx)
+		(*h.response).ResErr(iris.StatusUnprocessableEntity, schema.ErrDuplicateKey, schema.ErrDetDuplicateKey, &ctx)
 	} else if err != nil {																				// Something happen
-		(*h.response).RespErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
+		(*h.response).ResErr(iris.StatusInternalServerError, schema.ErrRepositoryOps, err.Error(), &ctx)
 	} else if updated > 0 {																				// All good, bDto was updated
-		(*h.response).RespOKWithData(iris.StatusOK, book, &ctx)
+		(*h.response).ResWithDataStatus(iris.StatusOK, book, &ctx)
 	}
 }
 

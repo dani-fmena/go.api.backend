@@ -21,6 +21,10 @@ type conf struct {
 	// Environment
 	Debug bool
 
+	// Cryptographic conf
+	JWTSignKey string
+	TkMaxAge uint8
+
 	// SISEC Auth Provider
 	SisecUrl        string
 	SisecClientId   string

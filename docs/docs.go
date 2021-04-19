@@ -28,6 +28,53 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/protected": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "This is a Bearer Token protected sample endpoint",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Sample protected endpoint",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "default": "Bearer \u003cAdd access token here\u003e",
+                        "description": "Insert access token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.AccessTokenData"
+                        }
+                    },
+                    "401": {
+                        "description": "err.unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "err.generic",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/sisec": {
             "post": {
                 "description": "Try to make the authentication of the user credentials through the SISEC auth provider service",
@@ -58,6 +105,18 @@ var doc = `{
                     },
                     "401": {
                         "description": "err.unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "err.json_parse",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ApiError"
+                        }
+                    },
+                    "504": {
+                        "description": "err.network",
                         "schema": {
                             "$ref": "#/definitions/dto.ApiError"
                         }
@@ -283,6 +342,20 @@ var doc = `{
         }
     },
     "definitions": {
+        "dto.AccessTokenData": {
+            "type": "object",
+            "properties": {
+                "claims": {
+                    "$ref": "#/definitions/dto.Claims"
+                },
+                "scope": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.ApiError": {
             "type": "object",
             "properties": {
@@ -335,6 +408,17 @@ var doc = `{
                 "name": {
                     "type": "string",
                     "example": "The Book of Eli"
+                }
+            }
+        },
+        "dto.Claims": {
+            "type": "object",
+            "properties": {
+                "rol": {
+                    "type": "string"
+                },
+                "sub": {
+                    "type": "string"
                 }
             }
         },

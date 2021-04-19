@@ -18,14 +18,15 @@ func NewSvcResponse(appConf *SvcConfig) *SvcResponse {
 
 // region ======== OK RESPONSES ==========================================================
 
-// RespOKWithData create response 200 with json data in to the context.
+// ResWithDataStatus create response with specified status and specified data converted to json
+// in to the context.
 //
 // - status [int] ~ Integer represent HTTP status for the response. iris.Status constants will be used
 //
 // - data [interface] ~ "Object" to be marshalled in to the context.
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func (s SvcResponse) RespOKWithData(status int, data interface{}, ctx *iris.Context)  {
+func (s SvcResponse) ResWithDataStatus(status int, data interface{}, ctx *iris.Context)  {
 	// TIP: negotiate the response between server's prioritizes
 	// and client's requirements, instead of ctx.JSON:
 	// ctx.Negotiation().JSON().MsgPack().Protobuf()
@@ -36,25 +37,37 @@ func (s SvcResponse) RespOKWithData(status int, data interface{}, ctx *iris.Cont
 	(*ctx).StatusCode(status)
 }
 
-// RespOK create a response OK but with an empty content (204)
+// ResWithDataStatus create response 200 with specified data converted to json in to the context.
+//
+// - data [interface] ~ "Object" to be marshalled in to the context.
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func (s SvcResponse) RespOK(ctx *iris.Context)  {
+func (s SvcResponse) ResOKWithData(data interface{}, ctx *iris.Context) {
+	if _, err := (*ctx).JSON(data); err != nil {																									// Logging *marshal* json if error occurs (come internally from iris)
+		(*ctx).Application().Logger().Error(err.Error())
+	}
+	(*ctx).StatusCode(iris.StatusOK)
+}
+
+// ResOK create a response OK but with an empty content (204)
+//
+// - ctx [*iris.Context] ~ Iris Request context
+func (s SvcResponse) ResOK(ctx *iris.Context)  {
 	(*ctx).StatusCode(iris.StatusNoContent)
 }
 
-// RespDelete create response 204. It's delete confirmation wit empty retrieving data.
+// ResDelete create response 204. It's delete confirmation wit empty retrieving data.
 // So, the client don't have to expect eny data and, we reduce some traffic.
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func (s SvcResponse) RespDelete(ctx *iris.Context)  {
+func (s SvcResponse) ResDelete(ctx *iris.Context)  {
 	(*ctx).StatusCode(iris.StatusNoContent)
 }
 // endregion =============================================================================
 
 // region ======== ERROR RESPONSES =======================================================
 
-// RespErr create and log an 'Error Response' to the stdout and setup the request context properly.
+// ResErr create and log an 'Error Response' to the stdout and setup the request context properly.
 // Also set the response status = specific status code, so we can respond the request accordingly (application/problem+json).
 // Ideally, this should be used for client error series (400s) or server error series (500)
 //
@@ -65,7 +78,7 @@ func (s SvcResponse) RespDelete(ctx *iris.Context)  {
 // - detail [string] ~ Error detail
 //
 // - ctx [*iris.Context] ~ Iris Request context
-func (s SvcResponse) RespErr(status int, title string, detail string, ctx *iris.Context) {
+func (s SvcResponse) ResErr(status int, title string, detail string, ctx *iris.Context) {
 	d := detail
 
 	// If the environment debug config isn't true then retrieve no details

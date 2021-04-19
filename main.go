@@ -4,11 +4,9 @@ import (
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/middleware/logger"
 	"github.com/kataras/iris/v12/middleware/recover"
-	"go.api.backend/schema/database"
-	"go.api.backend/service/utils"
 
-	"github.com/iris-contrib/swagger/v12"              // swagger middleware for Iris
-	"github.com/iris-contrib/swagger/v12/swaggerFiles" // swagger embed files
+	"github.com/iris-contrib/swagger/v12"              			// swagger middleware for Iris
+	"github.com/iris-contrib/swagger/v12/swaggerFiles" 			// swagger embed files
 
 	"github.com/go-playground/validator/v10"
 
@@ -16,6 +14,10 @@ import (
 
 	"go.api.backend/api/endpoints"
 	_ "go.api.backend/docs"
+
+	"go.api.backend/api/middlewares"
+	"go.api.backend/schema/database"
+	"go.api.backend/service/utils"
 )
 
 // @title Shell Project
@@ -25,6 +27,8 @@ import (
 // @contact.name Name Test
 // @contact.url http://contact.sample/text
 // @contact.email sample@mail.io
+
+// @authorizationurl https://example.com/oauth/authorize
 
 // @host localhost:8080
 // @BasePath /
@@ -48,6 +52,8 @@ func main() {
 	app.UseRouter(recover.New()) // Recovery middleware recovers from any panics and writes a 500 if there was one.
 
 	// Customs
+	MdwAuthChecker := middlewares.NewAuthCheckerMiddleware([]byte(svcC.JWTSignKey))
+
 	// endregion =============================================================================
 
 	// region ======== DATABASE BOOTSTRAPPING ================================================
@@ -60,7 +66,7 @@ func main() {
 	// region ======== ENDPOINT REGISTRATIONS ================================================
 
 	endpoints.NewBookHandler(app, pgdb, svcR)
-	endpoints.NewAuthHandler(app, svcR, svcC)
+	endpoints.NewAuthHandler(app, &MdwAuthChecker, svcR, svcC)
 	// endregion =============================================================================
 
 	// region ======== SWAGGER REGISTRATION ==================================================

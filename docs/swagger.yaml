@@ -1,5 +1,14 @@
 basePath: /
 definitions:
+  dto.AccessTokenData:
+    properties:
+      claims:
+        $ref: '#/definitions/dto.Claims'
+      scope:
+        items:
+          type: string
+        type: array
+    type: object
   dto.ApiError:
     properties:
       detail:
@@ -38,6 +47,13 @@ definitions:
     required:
     - items
     - name
+    type: object
+  dto.Claims:
+    properties:
+      rol:
+        type: string
+      sub:
+        type: string
     type: object
   dto.UserCredIn:
     properties:
@@ -83,6 +99,36 @@ info:
   title: Shell Project
   version: "0.0"
 paths:
+  /auth/protected:
+    get:
+      description: This is a Bearer Token protected sample endpoint
+      parameters:
+      - default: Bearer <Add access token here>
+        description: Insert access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.AccessTokenData'
+        "401":
+          description: err.unauthorized
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+        "500":
+          description: err.generic
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+      security:
+      - ApiKeyAuth: []
+      summary: Sample protected endpoint
+      tags:
+      - Auth
   /auth/sisec:
     post:
       consumes:
@@ -103,6 +149,14 @@ paths:
           description: Accepted
         "401":
           description: err.unauthorized
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+        "500":
+          description: err.json_parse
+          schema:
+            $ref: '#/definitions/dto.ApiError'
+        "504":
+          description: err.network
           schema:
             $ref: '#/definitions/dto.ApiError'
       summary: Auth the user credential through SISEC
