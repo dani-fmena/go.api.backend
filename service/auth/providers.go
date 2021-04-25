@@ -3,18 +3,20 @@ package auth
 import (
 	"encoding/base64"
 	"errors"
-	"go.api.backend/schema"
-	"go.api.backend/service/utils"
+	"github.com/kataras/iris/v12"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
 	jsoniter "github.com/json-iterator/go"
 
+	"go.api.backend/schema"
 	"go.api.backend/schema/dto"
+	"go.api.backend/service/utils"
 )
 
 
@@ -45,12 +47,12 @@ func (p *ProviderSisec) GrantIntent(uCred *dto.UserCredIn, options interface{}) 
 	v, ok := options.(*utils.SvcConfig)						// Checking the options | Assertion check
 	if !ok { return nil, nil, schema.ErrInvalidType }
 
-	tkData := base64.StdEncoding.EncodeToString([]byte(v.SisecClientId + ":" + v.SisecClientPass))                                                                          			// preparing sisec basic authentication token, see the doc they deliver to us
+	tkData := base64.StdEncoding.EncodeToString([]byte(v.SisecClientId + ":" + v.SisecClientPass))                                                                          			// preparing SISEC basic authentication token with app (this) credential data, see the doc they deliver to us | FIX think about generate this token on system startup, this way you don't need to generate on every client login
 	bodyData := "username=" + url.QueryEscape(uCred.Username) + "&password=" + url.QueryEscape(uCred.Password) + "&domain=" + url.QueryEscape(uCred.Domain) + "&grant_type=password" 	// preparing body with user credentials
 
 	// Building the request for grant intent against SISEC | https://medium.com/rungo/making-external-http-requests-in-go-eb4c015f8839
 	req := &http.Request {
-		Method: "GET",	// TODO we need to do a POST method and use the user credential info in the request against SISEC
+		Method: "POST",
 		URL: p.URL,
 		Header: map[string][]string {
 			"Content-Type": {"application/x-www-form-urlencoded"},
@@ -62,12 +64,18 @@ func (p *ProviderSisec) GrantIntent(uCred *dto.UserCredIn, options interface{}) 
 
 	// requesting the auth, access grant
 	res, err := http.DefaultClient.Do(req)
-	if err != nil { return nil, err, schema.ErrNetwork }
 	defer res.Body.Close()												// ensuring closing the body reader
 
-	// TODO This code block is temporal, we need to implement the unauthorized (wrong credentials) case, so we need to read the status code response
+	// checking what happen with the request
+	if err != nil {
+		return nil, err, schema.ErrNetwork
+	} else if res.StatusCode == iris.StatusNotFound || res.StatusCode == iris.StatusBadRequest {
+		return nil, errors.New(schema.ErrDetHttpResError + " - " + strconv.Itoa(res.StatusCode)), schema.ErrHttpResError
+	}
+
+	// TODO This code block is temporal, we need to implement the unauthorized (wrong credentials) case, so we need to read the status code response. check the response body
 	rand.Seed(time.Now().UnixNano())
-	if rand.Intn(3) == 0 { return nil, errors.New(schema.ErrInvalidCred), schema.ErrUnauthorized }
+	if rand.Intn(3) == 0 { return nil, errors.New(schema.ErrDetInvalidCred), schema.ErrUnauthorized }
 	// see crypto/rand for more secure generations
 
 	// Parsing and unmarshalling the response options

@@ -5,7 +5,9 @@ const (
 	ErrGeneric = "err.generic"
 	ErrRepositoryOps = "err.repo_ops"
 	ErrNotFound = "err.not_found"
+	ErrHttpResError = "err.http_res_err"
 	ErrDuplicateKey = "err.duplicate_key"
+
 	ErrInvalidType = "err.wrong_type_assertion"
 	ErrNetwork = "err.network"
 	ErrJsonParse = "err.json_parse"
@@ -19,10 +21,12 @@ const (
 
 // region ======== ERROR DETAILS =========================================================
 const (
-	ErrDetNotFound = "resource not found"
-	ErrDetDuplicateKey = "a unique resource field is duplicated"
-	ErrInvalidCred = "something was wrong with the provided user credentials"
-	InvalidProvider = "wrong or invalid provider"
+	ErrDetNotFound        = "resource not found"
+	ErrDetDuplicateKey 	  = "a unique resource field is duplicated"
+	ErrDetHttpResError    = "there is an error on http request response"
+	ErrDetInvalidType     = "invalid interface type (type assertion)"
+	ErrDetInvalidCred     = "something was wrong with the provided user credentials"
+	ErrDetInvalidProvider = "wrong or invalid provider"
 )
 // endregion =============================================================================
 

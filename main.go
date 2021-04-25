@@ -47,12 +47,12 @@ func main() {
 
 	// region ======== MIDDLEWARES ===========================================================
 
-	// Built-ins
+	// built-ins
 	app.Use(logger.New())
 	app.UseRouter(recover.New()) // Recovery middleware recovers from any panics and writes a 500 if there was one.
 
-	// Customs
-	MdwAuthChecker := middlewares.NewAuthCheckerMiddleware([]byte(svcC.JWTSignKey))
+	// customs
+	MdwAuthChecker := middlewares.NewAuthCheckerMiddleware([]byte(svcC.JWTSignKey))					// TODO get the JWTSignKey from OS env
 
 	// endregion =============================================================================
 

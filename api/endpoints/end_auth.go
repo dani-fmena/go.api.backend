@@ -5,6 +5,7 @@ import (
 	"github.com/kataras/iris/v12/context"
 	"github.com/kataras/iris/v12/hero"
 	"github.com/kataras/iris/v12/middleware/jwt"
+
 	"go.api.backend/lib"
 	"go.api.backend/schema"
 	"go.api.backend/schema/dto"
@@ -24,11 +25,15 @@ type HAuth struct {
 //
 // - app [*iris.Application] ~ Iris App instance
 //
-// - r [*utils.SvcResponse] ~ Response service instance
-func NewAuthHandler (app *iris.Application, MdwAuthChecker *context.Handler, r *utils.SvcResponse, svcC *utils.SvcConfig) HAuth {
+// - MdwAuthChecker [*context.Handler] ~ Authentication checker middleware
+//
+// - svcR [*utils.SvcResponse] ~ Response service instance
+//
+// - svcC [utils.SvcConfig] ~ Configuration service instance
+func NewAuthHandler (app *iris.Application, MdwAuthChecker *context.Handler, svcR *utils.SvcResponse, svcC *utils.SvcConfig) HAuth {
 
 	// --- VARS SETUP ---
-	h := HAuth{r, svcC, make(map[string]bool)}
+	h := HAuth{svcR, svcC, make(map[string]bool)}
 	// filling providers
 	h.providers["sisec"] = true
 	// h.providers["another_provider"] = true
@@ -51,16 +56,16 @@ func NewAuthHandler (app *iris.Application, MdwAuthChecker *context.Handler, r *
 	}
 
 	// registering protected router
-	protectedAuthRouter := app.Party("/auth")
+	guardAuthRouter := app.Party("/auth")
 	{
 		// --- GROUP / PARTY MIDDLEWARES ---
-		protectedAuthRouter.Use(*MdwAuthChecker)								// registering access token
+		guardAuthRouter.Use(*MdwAuthChecker) 									// registering access token checker middleware
 
 		// --- DEPENDENCIES ---
 
 		// --- REGISTERING ENDPOINTS ---
-		protectedAuthRouter.Get("/protected", h.protectedSample)
-		protectedAuthRouter.Get("/logout", h.logout)
+		guardAuthRouter.Get("/protected", h.protectedSample)
+		guardAuthRouter.Get("/logout", h.logout)
 	}
 
 	return h
@@ -121,20 +126,22 @@ func (h HAuth) logout(ctx iris.Context) {
 // @Failure 401 {object} dto.ApiError "err.unauthorized"
 // @Failure 400 {object} dto.ApiError "err.wrong_auth_provider"
 // @Failure 504 {object} dto.ApiError "err.network"
-// @Failure 500 {object} dto.ApiError "err.json_parse"
+// @Failure 500 {object} dto.ApiError "err.json_parse | err.wrong_type_assertion"
 // @Router /auth/{provider} [post]
 func (h HAuth) authIntent(ctx iris.Context, uCred *dto.UserCredIn, authService *auth.SvcAuthentication) {
 
 	provider := ctx.Params().Get("provider")
 	v, _ := h.providers[provider]									// v, ok := map[key]
 	if !v {
-		(*h.response).ResErr(iris.StatusBadRequest, schema.ErrWrongAuthProvider, schema.InvalidProvider, &ctx)
+		(*h.response).ResErr(iris.StatusBadRequest, schema.ErrWrongAuthProvider, schema.ErrDetInvalidProvider, &ctx)
 		return
 	}
 
 	// requesting authorization to SISEC with user credentials
-	authGrantedData, e, eCode := authService.AuthProviders[provider].GrantIntent(uCred, &h.appConf)
-	if e != nil && eCode == schema.ErrNetwork {
+	authGrantedData, e, eCode := authService.AuthProviders[provider].GrantIntent(uCred, h.appConf)
+	if eCode == schema.ErrInvalidType {
+		(*h.response).ResErr(iris.StatusInternalServerError, eCode, schema.ErrDetInvalidType, &ctx)
+	} else if e != nil && eCode == schema.ErrNetwork {
 		(*h.response).ResErr(iris.StatusGatewayTimeout, eCode, e.Error(), &ctx)
 	} else if e != nil && eCode == schema.ErrUnauthorized {
 		(*h.response).ResErr(iris.StatusUnauthorized, eCode, e.Error(), &ctx)
@@ -142,7 +149,7 @@ func (h HAuth) authIntent(ctx iris.Context, uCred *dto.UserCredIn, authService *
 		(*h.response).ResErr(iris.StatusInternalServerError, eCode, e.Error(), &ctx)
 	}
 
-	// if all good, we are going to create a token
+	// if so far so good, we are going to create the auth token
 	tokenData := mapper.ToAccessTokenDataV(&authGrantedData.Access_Token)
 	accessToken, er := lib.MkAccessToken(tokenData, []byte(h.appConf.JWTSignKey), h.appConf.TkMaxAge)
 	if er != nil {
